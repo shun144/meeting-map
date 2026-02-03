@@ -44,9 +44,9 @@ const useMap = () => {
 
     map.on("load", () => {
       setIsLoaded(true);
-      const offlineControl = new OfflineManagerControl();
+      // const offlineControl = new OfflineManagerControl();
 
-      // map.addControl(new maplibregl.NavigationControl());
+      map.addControl(new maplibregl.NavigationControl());
     });
     setMap(map);
 
