@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
+import { OfflineManagerControl } from "map-gl-offline";
+// import "map-gl-offline/dist/style.css";
 import { useMapStore } from "@/store/useMapStore";
 
 const useMap = () => {
@@ -29,20 +31,23 @@ const useMap = () => {
             id: "base-tiles",
             type: "raster",
             source: "base-map",
-            minzoom: 0,
-            maxzoom: 22,
+            minzoom: 11,
+            maxzoom: 20,
           },
         ],
       },
       center: [139.8800898, 35.6328464],
       zoom: 14,
-      minZoom: 8,
-      maxZoom: 20,
+      minZoom: 11,
+      maxZoom: 22,
     });
 
-    map.addControl(new maplibregl.NavigationControl());
+    map.on("load", () => {
+      setIsLoaded(true);
+      const offlineControl = new OfflineManagerControl();
 
-    map.on("load", () => setIsLoaded(true));
+      // map.addControl(new maplibregl.NavigationControl());
+    });
     setMap(map);
 
     return () => {
