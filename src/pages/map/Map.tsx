@@ -6,17 +6,17 @@ import { openDatabase } from "./db";
 type Props = React.ComponentProps<"div">;
 
 const Map: FC<Props> = ({ className }) => {
-  useEffect(() => {
-    const initDb = async () => {
-      try {
-        await openDatabase();
-      } catch (error) {
-        console.error("DB作成失敗");
-      }
-    };
+  // useEffect(() => {
+  //   const initDb = async () => {
+  //     try {
+  //       await openDatabase();
+  //     } catch (error) {
+  //       console.error("DB作成失敗");
+  //     }
+  //   };
 
-    initDb();
-  }, []);
+  //   initDb();
+  // }, []);
 
   const { mapContainer } = useMap();
   return (
