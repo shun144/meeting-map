@@ -56,16 +56,16 @@ const useMap = () => {
     const p = new PMTiles(PMTILES_URL);
     protocol.add(p);
 
-    // メタデータを確認
-    p.getMetadata().then((metadata) => {
-      // console.log("=== PMTiles Metadata ===");
-      // console.log("Full metadata:", metadata);
-      console.log({ metadata });
-      // console.log("Vector layers:", metadata.vector_layers);
-      // console.log("Bounds:", metadata.bounds);
-      // console.log("Center:", metadata.center);
-      // console.log("Min/Max zoom:", metadata.minzoom, metadata.maxzoom);
-    });
+    // // メタデータを確認
+    // p.getMetadata().then((metadata) => {
+    //   // console.log("=== PMTiles Metadata ===");
+    //   // console.log("Full metadata:", metadata);
+    //   console.log({ metadata });
+    //   // console.log("Vector layers:", metadata.vector_layers);
+    //   // console.log("Bounds:", metadata.bounds);
+    //   // console.log("Center:", metadata.center);
+    //   // console.log("Min/Max zoom:", metadata.minzoom, metadata.maxzoom);
+    // });
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
