@@ -92,11 +92,13 @@ const getFromIndexedDB = async (key) => {
 
 // fetchイベントでRange Requestに対応
 self.addEventListener("fetch", (event) => {
+  console.log("fetch開始");
   const url = new URL(event.request.url);
   if (url.href.includes("disneyland.pmtiles")) {
     event.respondWith(
       (async () => {
         try {
+          console.log("インターセプト");
           // IndexedDBから全体のArrayBufferを取得
           const arrayBuffer = await getFromIndexedDB("disneyland.pmtiles");
 
