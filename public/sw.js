@@ -1,38 +1,24 @@
-// self.addEventListener("install", function (event) {
-//   console.log("インストール開始");
-// });
-
-// const CACHE_NAME = "my-cache-v1";
-
-// Service Workerのスクリプト自体が初めてインストールされるときに発火
-// ユーザーが初めてサイトを訪問した時
-// sw.jsが更新されたとき（ブラウザがバイト単位で差分比較する）
-// self.addEventListener("install", function (e) {
-//   console.info("install", e);
-//   // 初期キャッシュを作成する！
-//   e.waitUntil(
-//     // キャッシュストレージを開く
-//     caches.open(CACHE_NAME).then((cache) => {}),
-//   );
-// });
-
 self.addEventListener("install", function (event) {
-  // waitUntilはpromiseを受け取る（async関数の実行結果が必要）
   event.waitUntil(
     (async () => {
-      console.log("ダウンロード開始！");
       const pmtilesUrl =
         "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/disneyland.pmtiles";
 
-      const response = await fetch(pmtilesUrl);
-      const arrayBuffer = await response.arrayBuffer();
+      try {
+        const response = await fetch(pmtilesUrl);
+        const arrayBuffer = await response.arrayBuffer();
 
-      // IndexedDBに全体を保存
-      await saveToIndexedDB("disneyland.pmtiles", arrayBuffer);
-
-      console.log("ダウンロード完了！");
+        // IndexedDBに全体を保存
+        await saveToIndexedDB("disneyland.pmtiles", arrayBuffer);
+      } catch (error) {
+        console.error(error);
+      }
     })(),
   );
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
 });
 
 const openDatabase = () => {
@@ -47,7 +33,6 @@ const openDatabase = () => {
       const db = this.result;
       if (!db.objectStoreNames.contains("tdl")) {
         db.createObjectStore("tdl");
-        // db.createObjectStore("tdl", { keyPath: "id" });
       }
     };
 
@@ -92,7 +77,6 @@ const getFromIndexedDB = async (key) => {
 
 // fetchイベントでRange Requestに対応
 self.addEventListener("fetch", (event) => {
-  console.log("fetch開始");
   const url = new URL(event.request.url);
   if (url.href.includes("disneyland.pmtiles")) {
     event.respondWith(
@@ -106,9 +90,9 @@ self.addEventListener("fetch", (event) => {
           const rangeHeader = event.request.headers.get("Range");
 
           if (rangeHeader) {
-            // Range Requestの処理
             const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
             if (match) {
+              // 第二引数：10進数宣言
               const start = parseInt(match[1], 10);
               const end = match[2]
                 ? parseInt(match[2], 10)
