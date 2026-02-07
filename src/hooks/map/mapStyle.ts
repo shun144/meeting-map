@@ -278,11 +278,19 @@ export const mapStyle: maplibregl.StyleSpecification = {
           ["linear"],
           ["zoom"],
           17,
-          9, // z17: 9px
+          12, // 大きめに
           18,
-          10, // z18: 10px
+          14,
           19,
-          11, // z19: 11px
+          16,
+          20,
+          18, // さらに拡大時も対応
+          // 17,
+          // 9, // z17: 9px
+          // 18,
+          // 10, // z18: 10px
+          // 19,
+          // 11, // z19: 11px
         ],
         "text-anchor": "center",
         "text-max-width": 10,
