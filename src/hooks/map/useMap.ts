@@ -19,16 +19,11 @@ const useMap = () => {
     const p = new PMTiles(PMTILES_URL);
     protocol.add(p);
 
-    // メタデータを確認
-    p.getMetadata().then((metadata) => {
-      // console.log("=== PMTiles Metadata ===");
-      // console.log("Full metadata:", metadata);
-      console.log({ metadata });
-      // console.log("Vector layers:", metadata.vector_layers);
-      // console.log("Bounds:", metadata.bounds);
-      // console.log("Center:", metadata.center);
-      // console.log("Min/Max zoom:", metadata.minzoom, metadata.maxzoom);
-    });
+    // // メタデータを確認
+    // p.getMetadata().then((metadata) => {
+    //   const data = metadata.tilestats.layers[0].attributes;
+    //   console.log(data);
+    // });
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
@@ -64,13 +59,23 @@ const useMap = () => {
 
     map.on("load", () => {
       setIsLoaded(true);
-      // const offlineControl = new OfflineManagerControl();
-
-      // const offlineManager = new OfflineMapManager();
-      // map.addControl(offlineControl);
 
       map.addControl(new maplibregl.NavigationControl());
+
+      // // 「アリスのティーパーティー」を検索
+      // const features = map.querySourceFeatures("tdl", {
+      //   sourceLayer: "disneyland",
+      // });
+
+      // // 名前に「アリス」を含むものを探す
+      // const alice = features.filter(
+      //   (f) => f.properties.name && f.properties.name.includes("アリス"),
+      // );
+
+      // console.log("アリスのティーパーティー:", alice);
+      // console.log("プロパティ:", alice[0]?.properties);
     });
+
     setMap(map);
 
     return () => {

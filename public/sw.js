@@ -82,7 +82,6 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       (async () => {
         try {
-          console.log("インターセプト");
           // IndexedDBから全体のArrayBufferを取得
           const arrayBuffer = await getFromIndexedDB("disneyland.pmtiles");
 
