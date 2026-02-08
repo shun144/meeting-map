@@ -33,38 +33,38 @@ const Map: FC<Props> = ({ className }) => {
     return true;
   }
 
-  let currentHeading = 0;
+  // let currentHeading = 0;
 
-  const onClick = async () => {
-    const granted = await requestDeviceOrientationPermission();
+  // const onClick = async () => {
+  //   const granted = await requestDeviceOrientationPermission();
 
-    if (granted) {
-      window.addEventListener(
-        "deviceorientationabsolute",
-        (event) => {
-          if (event.alpha !== null) {
-            // alpha: 0-360度（北が0度、時計回り）
-            currentHeading = 360 - event.alpha; // iOSでは逆向きなので反転
-            // alert(`現在の向き:${currentHeading}度`);
-          }
-        },
-        true,
-      );
-    }
-  };
+  //   if (granted) {
+  //     window.addEventListener(
+  //       "deviceorientationabsolute",
+  //       (event) => {
+  //         if (event.alpha !== null) {
+  //           // alpha: 0-360度（北が0度、時計回り）
+  //           currentHeading = 360 - event.alpha; // iOSでは逆向きなので反転
+  //           // alert(`現在の向き:${currentHeading}度`);
+  //         }
+  //       },
+  //       true,
+  //     );
+  //   }
+  // };
 
   return (
     <div className={className}>
-      <button onClick={onClick} className="bg-emerald-200">
+      {/* <button onClick={onClick} className="bg-emerald-200">
         承認
-      </button>
-      <button
+      </button> */}
+      {/* <button
         onClick={() => {
           alert(`現在の向き:${currentHeading}度`);
         }}
       >
         表示
-      </button>
+      </button> */}
       <div ref={mapContainer} className="h-full w-full" />;
     </div>
   );
