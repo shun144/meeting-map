@@ -37,7 +37,6 @@ const Map: FC<Props> = ({ className }) => {
 
   const onClick = async () => {
     const granted = await requestDeviceOrientationPermission();
-    console.log(granted);
 
     if (granted) {
       window.addEventListener(
@@ -46,7 +45,7 @@ const Map: FC<Props> = ({ className }) => {
           if (event.alpha !== null) {
             // alpha: 0-360度（北が0度、時計回り）
             currentHeading = 360 - event.alpha; // iOSでは逆向きなので反転
-            alert(`現在の向き:${currentHeading}度`);
+            // alert(`現在の向き:${currentHeading}度`);
           }
         },
         true,
@@ -57,7 +56,14 @@ const Map: FC<Props> = ({ className }) => {
   return (
     <div className={className}>
       <button onClick={onClick} className="bg-emerald-200">
-        サンプル
+        承認
+      </button>
+      <button
+        onClick={() => {
+          alert(`現在の向き:${currentHeading}度`);
+        }}
+      >
+        表示
       </button>
       <div ref={mapContainer} className="h-full w-full" />;
     </div>
