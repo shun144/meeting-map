@@ -82,44 +82,44 @@ const useMap = () => {
 
       map.addControl(geolocateControl);
 
-      // 位置情報が取得されたとき
-      geolocateControl.on("geolocate", (e: GeolocationPosition) => {
-        console.log("現在位置:", e.coords);
-        console.log("緯度:", e.coords.latitude);
-        console.log("経度:", e.coords.longitude);
-        console.log("精度:", e.coords.accuracy, "メートル");
-        console.log("向き:", e.coords.heading); // デバイスの向き（度数法、北が0）
-        console.log("速度:", e.coords.speed); // m/s
-        console.log("高度:", e.coords.altitude);
+      // // 位置情報が取得されたとき
+      // geolocateControl.on("geolocate", (e: GeolocationPosition) => {
+      //   console.log("現在位置:", e.coords);
+      //   console.log("緯度:", e.coords.latitude);
+      //   console.log("経度:", e.coords.longitude);
+      //   console.log("精度:", e.coords.accuracy, "メートル");
+      //   console.log("向き:", e.coords.heading); // デバイスの向き（度数法、北が0）
+      //   console.log("速度:", e.coords.speed); // m/s
+      //   console.log("高度:", e.coords.altitude);
 
-        alert(
-          `【現在位置情報】\n\n` +
-            `緯度: ${e.coords.latitude}\n` +
-            `経度: ${e.coords.longitude}\n` +
-            `精度: ${e.coords.accuracy} メートル\n` +
-            `向き: ${e.coords.heading ?? "なし"}\n` +
-            `速度: ${e.coords.speed ?? "なし"} m/s\n` +
-            `高度: ${e.coords.altitude ?? "なし"}`,
-        );
-        // console.log(e.coords.longitude, e.coords.latitude, e.coords.heading);
-        // // ユーザーの位置にマーカーを追加
-        // addUserMarker(e.coords.longitude, e.coords.latitude, e.coords.heading);
-      });
+      //   alert(
+      //     `【現在位置情報】\n\n` +
+      //       `緯度: ${e.coords.latitude}\n` +
+      //       `経度: ${e.coords.longitude}\n` +
+      //       `精度: ${e.coords.accuracy} メートル\n` +
+      //       `向き: ${e.coords.heading ?? "なし"}\n` +
+      //       `速度: ${e.coords.speed ?? "なし"} m/s\n` +
+      //       `高度: ${e.coords.altitude ?? "なし"}`,
+      //   );
+      //   // console.log(e.coords.longitude, e.coords.latitude, e.coords.heading);
+      //   // // ユーザーの位置にマーカーを追加
+      //   // addUserMarker(e.coords.longitude, e.coords.latitude, e.coords.heading);
+      // });
 
-      // トラッキングが開始されたとき
-      geolocateControl.on("trackuserlocationstart", () => {
-        console.log("ユーザー位置のトラッキング開始");
-      });
+      // // トラッキングが開始されたとき
+      // geolocateControl.on("trackuserlocationstart", () => {
+      //   console.log("ユーザー位置のトラッキング開始");
+      // });
 
-      // トラッキングが終了したとき
-      geolocateControl.on("trackuserlocationend", () => {
-        console.log("ユーザー位置のトラッキング終了");
-      });
+      // // トラッキングが終了したとき
+      // geolocateControl.on("trackuserlocationend", () => {
+      //   console.log("ユーザー位置のトラッキング終了");
+      // });
 
-      // エラーが発生したとき
-      geolocateControl.on("error", (e: GeolocationPositionError) => {
-        console.error("位置情報エラー:", e.message);
-      });
+      // // エラーが発生したとき
+      // geolocateControl.on("error", (e: GeolocationPositionError) => {
+      //   console.error("位置情報エラー:", e.message);
+      // });
 
       // const geolocateControl = new maplibregl.GeolocateControl({
       //   positionOptions: {
