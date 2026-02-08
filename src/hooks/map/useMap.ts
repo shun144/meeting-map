@@ -40,35 +40,99 @@ const useMap = () => {
       minZoom: 15, // 最大縮小（どのぐらいまでズームアウトするか（数字が小さい程縮小）
       maxZoom: 19, // 最大拡大（どのぐらいまでズームインするか（数字が大きい程拡大）
 
-      style: mapStyle,
+      // style: mapStyle,
 
-      // style: {
-      //   version: 8,
-      //   sources: {
-      //     osm: {
-      //       type: "raster",
-      //       tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-      //       tileSize: 256,
-      //       attribution: "© OpenStreetMap",
-      //     },
-      //   },
-      //   layers: [
-      //     {
-      //       id: "osm-base",
-      //       type: "raster",
-      //       source: "osm",
-      //       paint: {
-      //         "raster-opacity": 0.9,
-      //       },
-      //     },
-      //   ],
-      // },
+      style: {
+        version: 8,
+        sources: {
+          osm: {
+            type: "raster",
+            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+            tileSize: 256,
+            attribution: "© OpenStreetMap",
+          },
+        },
+        layers: [
+          {
+            id: "osm-base",
+            type: "raster",
+            source: "osm",
+            paint: {
+              "raster-opacity": 0.9,
+            },
+          },
+        ],
+      },
     });
 
     map.on("load", () => {
       setIsLoaded(true);
 
       map.addControl(new maplibregl.NavigationControl());
+
+      const geolocateControl = new maplibregl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true,
+        },
+        trackUserLocation: true,
+
+        // showAccuracyCircle: false,
+        // showUserLocation: true,
+      });
+
+      map.addControl(geolocateControl);
+
+      // 位置情報が取得されたとき
+      geolocateControl.on("geolocate", (e: GeolocationPosition) => {
+        console.log("現在位置:", e.coords);
+        console.log("緯度:", e.coords.latitude);
+        console.log("経度:", e.coords.longitude);
+        console.log("精度:", e.coords.accuracy, "メートル");
+        console.log("向き:", e.coords.heading); // デバイスの向き（度数法、北が0）
+        console.log("速度:", e.coords.speed); // m/s
+        console.log("高度:", e.coords.altitude);
+
+        alert(
+          `【現在位置情報】\n\n` +
+            `緯度: ${e.coords.latitude}\n` +
+            `経度: ${e.coords.longitude}\n` +
+            `精度: ${e.coords.accuracy} メートル\n` +
+            `向き: ${e.coords.heading ?? "なし"}\n` +
+            `速度: ${e.coords.speed ?? "なし"} m/s\n` +
+            `高度: ${e.coords.altitude ?? "なし"}`,
+        );
+        // console.log(e.coords.longitude, e.coords.latitude, e.coords.heading);
+        // // ユーザーの位置にマーカーを追加
+        // addUserMarker(e.coords.longitude, e.coords.latitude, e.coords.heading);
+      });
+
+      // トラッキングが開始されたとき
+      geolocateControl.on("trackuserlocationstart", () => {
+        console.log("ユーザー位置のトラッキング開始");
+      });
+
+      // トラッキングが終了したとき
+      geolocateControl.on("trackuserlocationend", () => {
+        console.log("ユーザー位置のトラッキング終了");
+      });
+
+      // エラーが発生したとき
+      geolocateControl.on("error", (e: GeolocationPositionError) => {
+        console.error("位置情報エラー:", e.message);
+      });
+
+      // const geolocateControl = new maplibregl.GeolocateControl({
+      //   positionOptions: {
+      //     enableHighAccuracy: true,
+      //   },
+      //   trackUserLocation: true,
+      // });
+
+      // map.addControl(geolocateControl);
+
+      // geolocateControl.on("trackuserlocationstart", () => {
+      //   console.log("A trackuserlocationstart event has occurred.");
+      // });
 
       // // 「アリスのティーパーティー」を検索
       // const features = map.querySourceFeatures("tdl", {
@@ -86,17 +150,15 @@ const useMap = () => {
 
     setMap(map);
 
-    // navigator.geolocation.getCurrentPosition(
-    //   (position) => {
-    //     const { latitude, longitude } = position.coords;
-    //     // マップの中心を現在位置に移動
-    //     map.setCenter([longitude, latitude]);
-    //     // console.log(latitude, longitude);
-    //   },
-    //   (error) => {
-    //     console.error("位置情報取得エラー:", error);
-    //   },
-    // );
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        map.setCenter([longitude, latitude]);
+      },
+      (error) => {
+        console.error("位置情報取得エラー:", error);
+      },
+    );
 
     return () => {
       map.remove();
