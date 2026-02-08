@@ -67,7 +67,7 @@ const useMap = () => {
         fitBoundsOptions: {
           maxZoom: 20,
           linear: true,
-          duration: 1000,
+          duration: 0,
         },
       });
 
