@@ -4,6 +4,16 @@ import { PMTiles, Protocol } from "pmtiles";
 import { useEffect, useRef } from "react";
 import { mapStyle } from "./mapStyle";
 
+// 線形補間
+function lerp(start: number, end: number, t: number): number {
+  return start + (end - start) * t;
+}
+
+// イージング（最初は速く、後でゆっくり減速する動きを作る関数）
+function easeOutQuad(t: number): number {
+  return 1 - (1 - t) * (1 - t);
+}
+
 const useMap = () => {
   const { setMap, setIsLoaded } = useMapStore();
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -22,7 +32,8 @@ const useMap = () => {
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
-      center: [139.8821, 35.6328],
+      // center: [139.8821, 35.6328],
+      center: [139.918839, 35.815512],
       zoom: 16,
       minZoom: 15, // 最大縮小（どのぐらいまでズームアウトするか（数字が小さい程縮小）
       maxZoom: 20, // 最大拡大（どのぐらいまでズームインするか（数字が大きい程拡大）
@@ -63,7 +74,7 @@ const useMap = () => {
         },
         trackUserLocation: true,
         showAccuracyCircle: false,
-        showUserLocation: true,
+        showUserLocation: false,
         fitBoundsOptions: {
           maxZoom: 20,
           linear: true,
@@ -71,63 +82,57 @@ const useMap = () => {
         },
       });
 
+      const userMarker = new maplibregl.Marker({ color: "#4285F4" });
+
       map.addControl(geolocateControl);
 
-      // // 位置情報が取得されたとき
-      // geolocateControl.on("geolocate", (e: GeolocationPosition) => {
-      //   console.log("位置情報が取得された");
-      //   // console.log("現在位置:", e.coords);
-      //   // console.log("緯度:", e.coords.latitude);
-      //   // console.log("経度:", e.coords.longitude);
-      //   // console.log("精度:", e.coords.accuracy, "メートル");
-      //   // console.log("向き:", e.coords.heading); // デバイスの向き（度数法、北が0）
-      //   // console.log("速度:", e.coords.speed); // m/s
-      //   // console.log("高度:", e.coords.altitude);
+      let currentPos: [number, number] | null = null;
+      let animationId: number | null = null;
 
-      //   // alert(
-      //   //   `【現在位置情報】\n\n` +
-      //   //     `緯度: ${e.coords.latitude}\n` +
-      //   //     `経度: ${e.coords.longitude}\n` +
-      //   //     `精度: ${e.coords.accuracy} メートル\n` +
-      //   //     `向き: ${e.coords.heading ?? "なし"}\n` +
-      //   //     `速度: ${e.coords.speed ?? "なし"} m/s\n` +
-      //   //     `高度: ${e.coords.altitude ?? "なし"}`,
-      //   // );
-      //   // console.log(e.coords.longitude, e.coords.latitude, e.coords.heading);
-      //   // // ユーザーの位置にマーカーを追加
-      //   // addUserMarker(e.coords.longitude, e.coords.latitude, e.coords.heading);
-      // });
+      function smoothMoveMarker(from: [number, number], to: [number, number]) {
+        const startTime = performance.now();
+        const duration = 600; // 0.6秒
 
-      // // トラッキングが開始されたとき
-      // geolocateControl.on("trackuserlocationstart", () => {
-      //   console.log("ユーザー位置のトラッキング開始");
-      // });
+        const animate = (currentTime: number) => {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = easeOutQuad(progress);
 
-      // // トラッキングが終了したとき
-      // geolocateControl.on("trackuserlocationend", () => {
-      //   console.log("ユーザー位置のトラッキング終了");
-      // });
+          const lng = lerp(from[0], to[0], eased);
+          const lat = lerp(from[1], to[1], eased);
 
-      // geolocateControl.on("userlocationlostfocus", function () {
-      //   console.log("An userlocationlostfocus event has occurred.");
-      // });
+          // マーカーだけ移動（カメラは動かない）
+          userMarker.setLngLat([lng, lat]);
 
-      // geolocateControl.on("userlocationfocus", function () {
-      //   console.log("An userlocationfocus event has occurred.");
-      // });
+          if (progress < 1) {
+            animationId = requestAnimationFrame(animate);
+          }
+        };
 
-      // geolocateControl.on("geolocate", () => {
-      //   console.log("A geolocate event has occurred.");
-      // });
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+        animationId = requestAnimationFrame(animate);
+      }
 
-      // geolocateControl.on("outofmaxbounds", () => {
-      //   console.log("An outofmaxbounds event has occurred.");
-      // });
+      geolocateControl.on("geolocate", (e) => {
+        const newPos: [number, number] = [
+          e.coords.longitude,
+          e.coords.latitude,
+        ];
 
-      // // エラーが発生したとき
-      // geolocateControl.on("error", (e: GeolocationPositionError) => {
-      //   console.error("位置情報エラー:", e.message);
-      // });
+        console.log(newPos);
+
+        if (!currentPos) {
+          currentPos = newPos;
+          userMarker.setLngLat(newPos).addTo(map);
+          map.jumpTo({ center: newPos, zoom: 18 });
+        } else {
+          // マーカーだけ滑らかに移動
+          smoothMoveMarker(currentPos, newPos);
+          currentPos = newPos;
+        }
+      });
     });
 
     setMap(map);
