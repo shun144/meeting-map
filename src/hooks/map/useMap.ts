@@ -8,6 +8,13 @@ const useMap = () => {
   const { setMap, setIsLoaded } = useMapStore();
   const mapContainer = useRef<HTMLDivElement | null>(null);
 
+  // useEffect(() => {
+  //   navigator.geolocation.getCurrentPosition((position) => {
+  //     const { latitude, longitude } = position.coords;
+  //     console.log(latitude, longitude);
+  //   });
+  // }, []);
+
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -27,6 +34,7 @@ const useMap = () => {
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
+      // center: [lon, lat],
       center: [139.8821, 35.6328],
       zoom: 16,
       minZoom: 15, // 最大縮小（どのぐらいまでズームアウトするか（数字が小さい程縮小）
@@ -77,6 +85,18 @@ const useMap = () => {
     });
 
     setMap(map);
+
+    // navigator.geolocation.getCurrentPosition(
+    //   (position) => {
+    //     const { latitude, longitude } = position.coords;
+    //     // マップの中心を現在位置に移動
+    //     map.setCenter([longitude, latitude]);
+    //     // console.log(latitude, longitude);
+    //   },
+    //   (error) => {
+    //     console.error("位置情報取得エラー:", error);
+    //   },
+    // );
 
     return () => {
       map.remove();

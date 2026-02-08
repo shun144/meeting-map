@@ -1,3 +1,14 @@
+import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
+
+// 古いバージョンのworkboxで追加されたキャッシュを自動削除する
+// workboxのバージョン変更があった場合に、古いバージョンのworkboxのキャッシュを削除する
+cleanupOutdatedCaches();
+
+// プリキャッシュの設定
+// installイベント時にself.__WB_MANIFESTに含まれるすべてのファイルをキャッシュに保存
+// fetchイベント時に、リクエストされたURLがプリキャッシュにあれば、キャッシュから返す
+precacheAndRoute(self.__WB_MANIFEST);
+
 self.addEventListener("install", function (event) {
   event.waitUntil(
     (async () => {
@@ -44,34 +55,6 @@ const openDatabase = () => {
     openRequest.onerror = function () {
       reject(this.error);
     };
-  });
-};
-
-const saveToIndexedDB = async (key, data) => {
-  const db = await openDatabase();
-
-  return new Promise((resolve, reject) => {
-    // db.transaction(アクセスしたいストア名,許可する権限)
-    // これから tdl ストアに書き込み操作をします」と宣言している
-    // 第一引数には配列で複数のストアを指定可能
-    const transaction = db.transaction("tdl", "readwrite");
-    const store = transaction.objectStore("tdl");
-
-    const request = store.put(data, key);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
-};
-
-const getFromIndexedDB = async (key) => {
-  const db = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction("tdl", "readonly");
-    const store = transaction.objectStore("tdl");
-    const request = store.get(key);
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
   });
 };
 
@@ -131,3 +114,31 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+const saveToIndexedDB = async (key, data) => {
+  const db = await openDatabase();
+
+  return new Promise((resolve, reject) => {
+    // db.transaction(アクセスしたいストア名,許可する権限)
+    // これから tdl ストアに書き込み操作をします」と宣言している
+    // 第一引数には配列で複数のストアを指定可能
+    const transaction = db.transaction("tdl", "readwrite");
+    const store = transaction.objectStore("tdl");
+
+    const request = store.put(data, key);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
+
+const getFromIndexedDB = async (key) => {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction("tdl", "readonly");
+    const store = transaction.objectStore("tdl");
+    const request = store.get(key);
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
