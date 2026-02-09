@@ -64,7 +64,8 @@ const openDatabase = () => {
 // fetchイベントでRange Requestに対応
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  if (url.href.includes("disneyland.pmtiles")) {
+  // if (url.href.includes("disneyland.pmtiles")) {
+  if (url.href.includes("mabashi.pmtiles")) {
     event.respondWith(
       (async () => {
         try {

@@ -3,14 +3,14 @@ import Chat from "./pages/chat/Chat";
 import { useEffect } from "react";
 
 const App = () => {
-  // useEffect(() => {
-  //   navigator.serviceWorker
-  //     .register("/sw.js", { updateViaCache: "none" })
-  //     .then(function (registration) {
-  //       // 強制的に更新チェック
-  //       registration.update();
-  //     });
-  // }, []);
+  useEffect(() => {
+    navigator.serviceWorker
+      .register("/sw.js", { updateViaCache: "none" })
+      .then(function (registration) {
+        // 強制的に更新チェック
+        registration.update();
+      });
+  }, []);
 
   return (
     <div className="h-screen overflow-y-scroll">
