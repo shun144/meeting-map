@@ -8,6 +8,8 @@ export const mapStyle: maplibregl.StyleSpecification = {
     tdl: {
       type: "vector",
       url: "pmtiles://" + PMTILES_URL,
+      attribution: "© OpenStreetMap",
+      maxzoom: 14,
     },
   },
   layers: [

@@ -12,11 +12,14 @@ precacheAndRoute(self.__WB_MANIFEST);
 self.addEventListener("install", function (event) {
   event.waitUntil(
     (async () => {
-      const pmtilesUrl =
-        "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/disneyland.pmtiles";
+      // const PMTILES_URL =
+      //   "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/disneyland.pmtiles";
+
+      const PMTILES_URL =
+        "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/mabashi.pmtiles";
 
       try {
-        const response = await fetch(pmtilesUrl);
+        const response = await fetch(PMTILES_URL);
         const arrayBuffer = await response.arrayBuffer();
 
         // IndexedDBに全体を保存

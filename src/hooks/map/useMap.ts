@@ -3,6 +3,7 @@ import maplibregl from "maplibre-gl";
 import { PMTiles, Protocol } from "pmtiles";
 import { useEffect, useRef } from "react";
 import { mapStyle } from "./mapStyle";
+import { mabashiStyle } from "./mabashiStyle";
 
 // 線形補間
 function lerp(start: number, end: number, t: number): number {
@@ -21,8 +22,11 @@ const useMap = () => {
   useEffect(() => {
     if (!mapContainer.current) return;
 
+    // const PMTILES_URL =
+    //   "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/disneyland.pmtiles";
+
     const PMTILES_URL =
-      "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/disneyland.pmtiles";
+      "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/mabashi.pmtiles";
 
     // MapLibre GLでPMTiles形式のタイルを読み込めるようにするための初期設定
     const protocol = new Protocol();
@@ -30,37 +34,43 @@ const useMap = () => {
     const pmtiles = new PMTiles(PMTILES_URL);
     protocol.add(pmtiles);
 
+    pmtiles.getMetadata().then((meta) => {
+      console.log(meta);
+    });
+
     const map = new maplibregl.Map({
       container: mapContainer.current,
       // center: [139.8821, 35.6328],
       center: [139.918839, 35.815512],
       zoom: 16,
-      minZoom: 15, // 最大縮小（どのぐらいまでズームアウトするか（数字が小さい程縮小）
       maxZoom: 20, // 最大拡大（どのぐらいまでズームインするか（数字が大きい程拡大）
+      minZoom: 15, // 最大縮小（どのぐらいまでズームアウトするか（数字が小さい程縮小）
 
+      style: mabashiStyle,
       // style: mapStyle,
 
-      style: {
-        version: 8,
-        sources: {
-          osm: {
-            type: "raster",
-            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-            tileSize: 256,
-            attribution: "© OpenStreetMap",
-          },
-        },
-        layers: [
-          {
-            id: "osm-base",
-            type: "raster",
-            source: "osm",
-            paint: {
-              "raster-opacity": 0.9,
-            },
-          },
-        ],
-      },
+      // style: {
+      //   version: 8,
+      //   sources: {
+      //     osm: {
+      //       type: "raster",
+      //       tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      //       tileSize: 256,
+      //       attribution: "© OpenStreetMap",
+      //       maxzoom: 19,
+      //     },
+      //   },
+      //   layers: [
+      //     {
+      //       id: "osm-base",
+      //       type: "raster",
+      //       source: "osm",
+      //       paint: {
+      //         "raster-opacity": 0.9,
+      //       },
+      //     },
+      //   ],
+      // },
     });
 
     map.on("load", () => {
@@ -76,7 +86,7 @@ const useMap = () => {
         showAccuracyCircle: false,
         showUserLocation: false,
         fitBoundsOptions: {
-          maxZoom: 20,
+          maxZoom: 19,
           linear: true,
           duration: 0,
         },
@@ -120,8 +130,6 @@ const useMap = () => {
           e.coords.longitude,
           e.coords.latitude,
         ];
-
-        console.log(newPos);
 
         if (!currentPos) {
           currentPos = newPos;
