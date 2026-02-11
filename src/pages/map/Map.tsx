@@ -51,6 +51,10 @@ const Map: FC<Props> = ({ className }) => {
 
     const cleanups: Array<{ cleanup: () => void }> = [];
 
+    mapInstance.on("touchend", (e) => {
+      alert(e.lngLat);
+    });
+
     mapInstance.on("click", (event) => {
       if (isMarker(event.originalEvent.target)) return;
 
@@ -78,9 +82,6 @@ const Map: FC<Props> = ({ className }) => {
         const repo = new DestinationRepository();
         await repo.delete(id);
       }
-      // const targetMarker = (event.originalEvent.target as HTMLElement).closest(
-      //   ".maplibregl-marker",
-      // );
     });
 
     return () => {
