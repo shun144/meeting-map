@@ -1,64 +1,98 @@
-import useMap from "@/hooks/map/useMap";
-import { useEffect, useState, type FC } from "react";
+import { createDestinationMarker } from "@/components/map/destination/DestinationMarker";
+import { Destination } from "@/domains/Destination";
+import { mabashiStyle } from "@/hooks/map/mabashiStyle";
+import { fetchAllDestination } from "@/lib/supabase/supabaseFunction";
+import maplibregl from "maplibre-gl";
+import { PMTiles, Protocol } from "pmtiles";
 import type React from "react";
-// import { openDatabase } from "./db";
+import { useEffect, useRef, useState, type FC } from "react";
 
 type Props = React.ComponentProps<"div">;
 
 const Map: FC<Props> = ({ className }) => {
-  const { mapContainer } = useMap();
+  const [map, setMap] = useState<maplibregl.Map | null>(null);
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
-  // const [orientation, setOrientation] = useState({
-  //   alpha: 0,
-  //   beta: 0,
-  //   gamma: 0,
-  // });
+  useEffect(() => {
+    (async () => {
+      const res = await fetchAllDestination();
+      setDestinations(res);
+    })();
 
-  // // 使用許可を確認
-  // const handlePermissionBtnClick = async () => {
-  //   const DOE = DeviceOrientationEvent as any;
-  //   DOE.requestPermission().then(async (val: string) => {
-  //     if (val === "granted") {
-  //       console.log("許可されました");
-  //     } else {
-  //       console.log("許可されませんでした");
-  //     }
-  //   });
-  // };
+    if (!mapContainerRef.current) return;
 
-  // useEffect(() => {
-  //   const handleOrientation = (event: DeviceOrientationEvent) => {
-  //     setOrientation({
-  //       alpha: event.alpha ?? 0,
-  //       beta: event.beta ?? 0,
-  //       gamma: event.gamma ?? 0,
-  //     });
-  //   };
-  //   window.addEventListener("deviceorientation", handleOrientation, true);
-  //   return () => {
-  //     window.removeEventListener("deviceorientation", handleOrientation);
-  //   };
-  // }, []);
+    const PMTILES_URL =
+      "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/mabashi.pmtiles";
+
+    const protocol = new Protocol();
+    maplibregl.addProtocol("pmtiles", protocol.tile);
+    const pmtiles = new PMTiles(PMTILES_URL);
+    protocol.add(pmtiles);
+
+    const mapInstance = new maplibregl.Map({
+      container: mapContainerRef.current,
+      center: [139.918839, 35.815512],
+      zoom: 18,
+      maxZoom: 20,
+      minZoom: 15,
+      style: mabashiStyle,
+      doubleClickZoom: false,
+    });
+
+    mapInstance.on("load", () => {
+      setMap(mapInstance);
+    });
+
+    const cleanups: Array<{ cleanup: () => void }> = [];
+
+    mapInstance.on("click", (event) => {
+      if (
+        (event.originalEvent.target as HTMLElement).closest(
+          ".maplibregl-marker",
+        )
+      ) {
+        return;
+      }
+
+      const newDestination = new Destination(0, event.lngLat, "");
+      const { marker, cleanup } = createDestinationMarker({
+        destination: newDestination,
+        setDestinations,
+      });
+      marker.addTo(mapInstance);
+      marker.togglePopup();
+      cleanups.push({ cleanup });
+    });
+
+    return () => {
+      mapInstance.remove();
+      cleanups.forEach(({ cleanup }) => cleanup());
+    };
+  }, []);
+
+  useEffect(() => {
+    // マップと目的地情報の両方がある場合にのみマーカー追加処理を行う
+    if (!map || !destinations) return;
+
+    const cleanups: Array<{ cleanup: () => void }> = [];
+
+    destinations.forEach((destination) => {
+      const { marker, cleanup } = createDestinationMarker({
+        destination,
+        setDestinations,
+      });
+      marker.addTo(map);
+      cleanups.push({ cleanup });
+    });
+
+    return () => cleanups.forEach(({ cleanup }) => cleanup());
+  }, [map, destinations]);
 
   return (
     <div className={className}>
-      <div ref={mapContainer} className="h-full w-full" />;
+      <div ref={mapContainerRef} className="h-full w-full" />;
     </div>
-
-    // <>
-    //   <h1
-    //     style={{
-    //       transform: `translateX(${(orientation.gamma * 360) / 100}px)
-    //                    translateY(${((orientation.beta - 30) * 360) / 100}px)`,
-    //     }}
-    //   >
-    //     Try Device Orientation
-    //   </h1>
-
-    //   <button type="button" onClick={handlePermissionBtnClick}>
-    //     方向の取得を許可する
-    //   </button>
-    // </>
   );
 };
 

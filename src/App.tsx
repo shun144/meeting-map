@@ -1,6 +1,6 @@
 import Map from "@/pages/map/Map";
 import Chat from "./pages/chat/Chat";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const App = () => {
   useEffect(() => {
@@ -16,7 +16,9 @@ const App = () => {
     <div className="h-screen overflow-y-scroll">
       <div className="flex flex-col h-full">
         <div className="h-8 bg-gray-50">タイトル</div>
+
         <Map className="flex-1" />
+
         {/* <Chat className="h-full w-44" /> */}
       </div>
     </div>

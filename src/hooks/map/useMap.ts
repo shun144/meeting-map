@@ -4,6 +4,8 @@ import { PMTiles, Protocol } from "pmtiles";
 import { useEffect, useRef } from "react";
 import { mapStyle } from "./mapStyle";
 import { mabashiStyle } from "./mabashiStyle";
+import { createDestinationMarker } from "@/components/map/destination/DestinationMarker";
+import { fetchAllDestination } from "@/lib/supabase/supabaseFunction";
 
 // 線形補間
 function lerp(start: number, end: number, t: number): number {
@@ -16,8 +18,12 @@ function easeOutQuad(t: number): number {
 }
 
 const useMap = () => {
-  const { setMap, setIsLoaded } = useMapStore();
+  console.log("useMap");
+  const { setMap, setIsMapLoaded } = useMapStore();
   const mapContainer = useRef<HTMLDivElement | null>(null);
+  const markersRef = useRef<
+    { marker: maplibregl.Marker; cleanup: () => void }[]
+  >([]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -34,15 +40,15 @@ const useMap = () => {
     const pmtiles = new PMTiles(PMTILES_URL);
     protocol.add(pmtiles);
 
-    pmtiles.getMetadata().then((meta) => {
-      console.log(meta);
-    });
+    // pmtiles.getMetadata().then((meta) => {
+    //   console.log(meta);
+    // });
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
       // center: [139.8821, 35.6328],
       center: [139.918839, 35.815512],
-      zoom: 16,
+      zoom: 18,
       maxZoom: 20, // 最大拡大（どのぐらいまでズームインするか（数字が大きい程拡大）
       minZoom: 15, // 最大縮小（どのぐらいまでズームアウトするか（数字が小さい程縮小）
 
@@ -74,7 +80,7 @@ const useMap = () => {
     });
 
     map.on("load", () => {
-      setIsLoaded(true);
+      setIsMapLoaded(true);
 
       map.addControl(new maplibregl.NavigationControl());
 
@@ -143,9 +149,30 @@ const useMap = () => {
       });
     });
 
+    // map.on("click", (e) => {
+    //   const { lat, lng } = e.lngLat;
+    //   createDestinationMarker(lat, lng, map);
+    // });
+
+    // 古いマーカーを削除
+    markersRef.current.forEach(({ cleanup }) => cleanup());
+    markersRef.current = [];
+
+    (async () => {
+      const res = await fetchAllDestination();
+
+      res.forEach((x) => {
+        const { marker, cleanup } = createDestinationMarker(x);
+        marker.addTo(map);
+        markersRef.current.push({ marker, cleanup });
+      });
+    })();
+
     setMap(map);
 
     return () => {
+      markersRef.current.forEach(({ cleanup }) => cleanup());
+      markersRef.current = [];
       map.remove();
     };
   }, []);

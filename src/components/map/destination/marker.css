@@ -1,0 +1,9 @@
+@reference "../../../index.css";
+
+.destination-marker {
+  @apply cursor-pointer;
+}
+
+.destination-marker-popup-input {
+  @apply bg-red-100;
+}

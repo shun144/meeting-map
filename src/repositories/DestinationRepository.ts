@@ -1,0 +1,109 @@
+import type { Destination } from "@/domains/Destination";
+import { supabase } from "@/lib/supabase/supabaseClient";
+import { toDTO, fromDB } from "./destinationMapper";
+import { type Tables } from "@/lib/supabase/schema";
+
+const DEFAULT_MAP_ID = import.meta.env.VITE_DEFAULT_MAP_ID as string;
+
+export class DestinationRepository {
+  async save(destination: Destination): Promise<Destination> {
+    try {
+      const dto = toDTO(destination, DEFAULT_MAP_ID);
+
+      const { data, error } = await supabase
+        .from("destination")
+        .upsert(dto)
+        .select("*")
+        .single();
+
+      if (error) {
+        throw new Error(`目的地の保存に失敗しました: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error("目的地の保存に失敗しました");
+      }
+
+      return fromDB(data as Tables<"destination">);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("目的地保存エラー:", error.message);
+        throw error;
+      }
+      throw new Error("予期しないエラーが発生しました");
+    }
+  }
+
+  async findById(id: number): Promise<Destination | null> {
+    try {
+      const { data, error } = await supabase
+        .from("destination")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116") {
+          return null;
+        }
+        throw new Error(`目的地の取得に失敗しました: ${error.message}`);
+      }
+
+      if (!data) {
+        return null;
+      }
+
+      return fromDB(data as Tables<"destination">);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("目的地取得エラー:", error.message);
+        throw error;
+      }
+      throw new Error("予期しないエラーが発生しました");
+    }
+  }
+
+  async findAll(): Promise<Destination[]> {
+    try {
+      const { data, error } = await supabase
+        .from("destination")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        throw new Error(`目的地一覧の取得に失敗しました: ${error.message}`);
+      }
+
+      if (!data) {
+        return [];
+      }
+
+      return data.map((row) => fromDB(row as Tables<"destination">));
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("目的地一覧取得エラー:", error.message);
+        throw error;
+      }
+      throw new Error("予期しないエラーが発生しました");
+    }
+  }
+
+  async delete(id: number): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from("destination")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        throw new Error(`目的地の削除に失敗しました: ${error.message}`);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("目的地削除エラー:", error.message);
+        throw error;
+      }
+      throw new Error("予期しないエラーが発生しました");
+    }
+  }
+}
