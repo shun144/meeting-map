@@ -2,10 +2,6 @@ import Map from "@/pages/map/Map";
 import Chat from "./pages/chat/Chat";
 import { useEffect, useState } from "react";
 
-if (process.env.NODE_ENV === "development") {
-  import("eruda").then((eruda) => eruda.default.init());
-}
-
 const App = () => {
   useEffect(() => {
     navigator.serviceWorker
