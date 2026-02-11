@@ -3,7 +3,8 @@ import { supabase } from "@/lib/supabase/supabaseClient";
 import { toDTO, fromDB } from "./destinationMapper";
 import { type Tables } from "@/lib/supabase/schema";
 
-const DEFAULT_MAP_ID = import.meta.env.VITE_DEFAULT_MAP_ID as string;
+// const DEFAULT_MAP_ID = import.meta.env.VITE_DEFAULT_MAP_ID as string;
+const DEFAULT_MAP_ID = "e7d98183-5ebe-4171-a364-2eb93cc6de97";
 
 export class DestinationRepository {
   async save(destination: Destination): Promise<Destination> {

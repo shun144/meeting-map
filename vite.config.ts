@@ -65,4 +65,8 @@ export default defineConfig({
       localsConvention: "dashes",
     },
   },
+
+  server: {
+    host: true,
+  },
 });
