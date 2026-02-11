@@ -12,10 +12,14 @@ export const createDestinationMarker = ({
   destination,
   setDestinations,
 }: Args) => {
+  const div = document.createElement("div");
   const marker = new maplibregl.Marker({
     color: destination.id === 0 ? "red" : "#4285F4",
     className: styles.marker,
   });
+  marker
+    .getElement()
+    .setAttribute("data-destination-id", String(destination.id));
   marker.setLngLat(destination.latlng);
 
   const inputElem = document.createElement("input");
@@ -23,7 +27,7 @@ export const createDestinationMarker = ({
   inputElem.defaultValue = destination.title;
 
   const popup = new maplibregl.Popup({
-    closeButton: false,
+    closeButton: true,
   });
   popup.setDOMContent(inputElem);
 
@@ -60,7 +64,10 @@ export const createDestinationMarker = ({
       );
     }
   };
-  popup.on("close", handleClose);
+
+  popup.on("close", () => {
+    handleClose();
+  });
 
   const cleanup = () => {
     popup.off("close", handleClose);

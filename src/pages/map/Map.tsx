@@ -2,12 +2,17 @@ import { createDestinationMarker } from "@/components/map/destination/Destinatio
 import { Destination } from "@/domains/Destination";
 import { mabashiStyle } from "@/hooks/map/mabashiStyle";
 import { fetchAllDestination } from "@/lib/supabase/supabaseFunction";
+import { DestinationRepository } from "@/repositories/DestinationRepository";
 import maplibregl from "maplibre-gl";
 import { PMTiles, Protocol } from "pmtiles";
 import type React from "react";
 import { useEffect, useRef, useState, type FC } from "react";
 
 type Props = React.ComponentProps<"div">;
+
+const isMarker = (target: EventTarget | null): target is SVGAElement => {
+  return !!(target as HTMLElement).closest(".maplibregl-marker");
+};
 
 const Map: FC<Props> = ({ className }) => {
   const [map, setMap] = useState<maplibregl.Map | null>(null);
@@ -47,13 +52,7 @@ const Map: FC<Props> = ({ className }) => {
     const cleanups: Array<{ cleanup: () => void }> = [];
 
     mapInstance.on("click", (event) => {
-      if (
-        (event.originalEvent.target as HTMLElement).closest(
-          ".maplibregl-marker",
-        )
-      ) {
-        return;
-      }
+      if (isMarker(event.originalEvent.target)) return;
 
       const newDestination = new Destination(0, event.lngLat, "");
       const { marker, cleanup } = createDestinationMarker({
@@ -63,6 +62,25 @@ const Map: FC<Props> = ({ className }) => {
       marker.addTo(mapInstance);
       marker.togglePopup();
       cleanups.push({ cleanup });
+    });
+
+    mapInstance.on("contextmenu", async (event) => {
+      const eventTarget = event.originalEvent.target;
+      if (isMarker(eventTarget)) {
+        const targetId = eventTarget
+          .closest(".maplibregl-marker")!
+          .getAttribute("data-destination-id");
+
+        const id = parseInt(targetId ?? "0");
+        if (id === 0) return;
+        setDestinations((prev) => prev.filter((x) => x.id !== id));
+
+        const repo = new DestinationRepository();
+        await repo.delete(id);
+      }
+      // const targetMarker = (event.originalEvent.target as HTMLElement).closest(
+      //   ".maplibregl-marker",
+      // );
     });
 
     return () => {
