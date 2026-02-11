@@ -1,183 +1,183 @@
-import { useMapStore } from "@/store/useMapStore";
-import maplibregl from "maplibre-gl";
-import { PMTiles, Protocol } from "pmtiles";
-import { useEffect, useRef } from "react";
-import { mapStyle } from "./mapStyle";
-import { mabashiStyle } from "./mabashiStyle";
-import { createDestinationMarker } from "@/components/map/destination/DestinationMarker";
-import { fetchAllDestination } from "@/lib/supabase/supabaseFunction";
+// import { useMapStore } from "@/store/useMapStore";
+// import maplibregl from "maplibre-gl";
+// import { PMTiles, Protocol } from "pmtiles";
+// import { useEffect, useRef } from "react";
+// import { mapStyle } from "./mapStyle";
+// import { mabashiStyle } from "./mabashiStyle";
+// import { createDestinationMarker } from "@/components/map/destination/DestinationMarker";
+// import { fetchAllDestination } from "@/lib/supabase/supabaseFunction";
 
-// 線形補間
-function lerp(start: number, end: number, t: number): number {
-  return start + (end - start) * t;
-}
+// // 線形補間
+// function lerp(start: number, end: number, t: number): number {
+//   return start + (end - start) * t;
+// }
 
-// イージング（最初は速く、後でゆっくり減速する動きを作る関数）
-function easeOutQuad(t: number): number {
-  return 1 - (1 - t) * (1 - t);
-}
+// // イージング（最初は速く、後でゆっくり減速する動きを作る関数）
+// function easeOutQuad(t: number): number {
+//   return 1 - (1 - t) * (1 - t);
+// }
 
-const useMap = () => {
-  console.log("useMap");
-  const { setMap, setIsMapLoaded } = useMapStore();
-  const mapContainer = useRef<HTMLDivElement | null>(null);
-  const markersRef = useRef<
-    { marker: maplibregl.Marker; cleanup: () => void }[]
-  >([]);
+// const useMap = () => {
+//   console.log("useMap");
+//   const { setMap, setIsMapLoaded } = useMapStore();
+//   const mapContainer = useRef<HTMLDivElement | null>(null);
+//   const markersRef = useRef<
+//     { marker: maplibregl.Marker; cleanup: () => void }[]
+//   >([]);
 
-  useEffect(() => {
-    if (!mapContainer.current) return;
+//   useEffect(() => {
+//     if (!mapContainer.current) return;
 
-    // const PMTILES_URL =
-    //   "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/disneyland.pmtiles";
+//     // const PMTILES_URL =
+//     //   "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/disneyland.pmtiles";
 
-    const PMTILES_URL =
-      "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/mabashi.pmtiles";
+//     const PMTILES_URL =
+//       "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/mabashi.pmtiles";
 
-    // MapLibre GLでPMTiles形式のタイルを読み込めるようにするための初期設定
-    const protocol = new Protocol();
-    maplibregl.addProtocol("pmtiles", protocol.tile);
-    const pmtiles = new PMTiles(PMTILES_URL);
-    protocol.add(pmtiles);
+//     // MapLibre GLでPMTiles形式のタイルを読み込めるようにするための初期設定
+//     const protocol = new Protocol();
+//     maplibregl.addProtocol("pmtiles", protocol.tile);
+//     const pmtiles = new PMTiles(PMTILES_URL);
+//     protocol.add(pmtiles);
 
-    // pmtiles.getMetadata().then((meta) => {
-    //   console.log(meta);
-    // });
+//     // pmtiles.getMetadata().then((meta) => {
+//     //   console.log(meta);
+//     // });
 
-    const map = new maplibregl.Map({
-      container: mapContainer.current,
-      // center: [139.8821, 35.6328],
-      center: [139.918839, 35.815512],
-      zoom: 18,
-      maxZoom: 20, // 最大拡大（どのぐらいまでズームインするか（数字が大きい程拡大）
-      minZoom: 15, // 最大縮小（どのぐらいまでズームアウトするか（数字が小さい程縮小）
+//     const map = new maplibregl.Map({
+//       container: mapContainer.current,
+//       // center: [139.8821, 35.6328],
+//       center: [139.918839, 35.815512],
+//       zoom: 18,
+//       maxZoom: 20, // 最大拡大（どのぐらいまでズームインするか（数字が大きい程拡大）
+//       minZoom: 15, // 最大縮小（どのぐらいまでズームアウトするか（数字が小さい程縮小）
 
-      style: mabashiStyle,
-      // style: mapStyle,
+//       style: mabashiStyle,
+//       // style: mapStyle,
 
-      // style: {
-      //   version: 8,
-      //   sources: {
-      //     osm: {
-      //       type: "raster",
-      //       tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-      //       tileSize: 256,
-      //       attribution: "© OpenStreetMap",
-      //       maxzoom: 19,
-      //     },
-      //   },
-      //   layers: [
-      //     {
-      //       id: "osm-base",
-      //       type: "raster",
-      //       source: "osm",
-      //       paint: {
-      //         "raster-opacity": 0.9,
-      //       },
-      //     },
-      //   ],
-      // },
-    });
+//       // style: {
+//       //   version: 8,
+//       //   sources: {
+//       //     osm: {
+//       //       type: "raster",
+//       //       tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+//       //       tileSize: 256,
+//       //       attribution: "© OpenStreetMap",
+//       //       maxzoom: 19,
+//       //     },
+//       //   },
+//       //   layers: [
+//       //     {
+//       //       id: "osm-base",
+//       //       type: "raster",
+//       //       source: "osm",
+//       //       paint: {
+//       //         "raster-opacity": 0.9,
+//       //       },
+//       //     },
+//       //   ],
+//       // },
+//     });
 
-    map.on("load", () => {
-      setIsMapLoaded(true);
+//     map.on("load", () => {
+//       setIsMapLoaded(true);
 
-      map.addControl(new maplibregl.NavigationControl());
+//       map.addControl(new maplibregl.NavigationControl());
 
-      const geolocateControl = new maplibregl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true, // アプリケーションが可能な限り最良の結果を得たいことを示すブール値です。true の場合、デバイスがより正確な位置情報を提供できる場合は、その情報を提供します。ただし、これにより応答時間が遅くなったり、消費電力が増加したりする可能性があります（例えば、モバイルデバイスに GPS チップが搭載されている場合など）。一方、false の場合、デバイスは応答速度を速めたり、消費電力を抑えたりすることでリソースを節約できます。デフォルト: false
-        },
-        trackUserLocation: true,
-        showAccuracyCircle: false,
-        showUserLocation: false,
-        fitBoundsOptions: {
-          maxZoom: 19,
-          linear: true,
-          duration: 0,
-        },
-      });
+//       const geolocateControl = new maplibregl.GeolocateControl({
+//         positionOptions: {
+//           enableHighAccuracy: true, // アプリケーションが可能な限り最良の結果を得たいことを示すブール値です。true の場合、デバイスがより正確な位置情報を提供できる場合は、その情報を提供します。ただし、これにより応答時間が遅くなったり、消費電力が増加したりする可能性があります（例えば、モバイルデバイスに GPS チップが搭載されている場合など）。一方、false の場合、デバイスは応答速度を速めたり、消費電力を抑えたりすることでリソースを節約できます。デフォルト: false
+//         },
+//         trackUserLocation: true,
+//         showAccuracyCircle: false,
+//         showUserLocation: false,
+//         fitBoundsOptions: {
+//           maxZoom: 19,
+//           linear: true,
+//           duration: 0,
+//         },
+//       });
 
-      const userMarker = new maplibregl.Marker({ color: "#4285F4" });
+//       const userMarker = new maplibregl.Marker({ color: "#4285F4" });
 
-      map.addControl(geolocateControl);
+//       map.addControl(geolocateControl);
 
-      let currentPos: [number, number] | null = null;
-      let animationId: number | null = null;
+//       let currentPos: [number, number] | null = null;
+//       let animationId: number | null = null;
 
-      function smoothMoveMarker(from: [number, number], to: [number, number]) {
-        const startTime = performance.now();
-        const duration = 600; // 0.6秒
+//       function smoothMoveMarker(from: [number, number], to: [number, number]) {
+//         const startTime = performance.now();
+//         const duration = 600; // 0.6秒
 
-        const animate = (currentTime: number) => {
-          const elapsed = currentTime - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-          const eased = easeOutQuad(progress);
+//         const animate = (currentTime: number) => {
+//           const elapsed = currentTime - startTime;
+//           const progress = Math.min(elapsed / duration, 1);
+//           const eased = easeOutQuad(progress);
 
-          const lng = lerp(from[0], to[0], eased);
-          const lat = lerp(from[1], to[1], eased);
+//           const lng = lerp(from[0], to[0], eased);
+//           const lat = lerp(from[1], to[1], eased);
 
-          // マーカーだけ移動（カメラは動かない）
-          userMarker.setLngLat([lng, lat]);
+//           // マーカーだけ移動（カメラは動かない）
+//           userMarker.setLngLat([lng, lat]);
 
-          if (progress < 1) {
-            animationId = requestAnimationFrame(animate);
-          }
-        };
+//           if (progress < 1) {
+//             animationId = requestAnimationFrame(animate);
+//           }
+//         };
 
-        if (animationId) {
-          cancelAnimationFrame(animationId);
-        }
-        animationId = requestAnimationFrame(animate);
-      }
+//         if (animationId) {
+//           cancelAnimationFrame(animationId);
+//         }
+//         animationId = requestAnimationFrame(animate);
+//       }
 
-      geolocateControl.on("geolocate", (e) => {
-        const newPos: [number, number] = [
-          e.coords.longitude,
-          e.coords.latitude,
-        ];
+//       geolocateControl.on("geolocate", (e) => {
+//         const newPos: [number, number] = [
+//           e.coords.longitude,
+//           e.coords.latitude,
+//         ];
 
-        if (!currentPos) {
-          currentPos = newPos;
-          userMarker.setLngLat(newPos).addTo(map);
-          map.jumpTo({ center: newPos, zoom: 18 });
-        } else {
-          // マーカーだけ滑らかに移動
-          smoothMoveMarker(currentPos, newPos);
-          currentPos = newPos;
-        }
-      });
-    });
+//         if (!currentPos) {
+//           currentPos = newPos;
+//           userMarker.setLngLat(newPos).addTo(map);
+//           map.jumpTo({ center: newPos, zoom: 18 });
+//         } else {
+//           // マーカーだけ滑らかに移動
+//           smoothMoveMarker(currentPos, newPos);
+//           currentPos = newPos;
+//         }
+//       });
+//     });
 
-    // map.on("click", (e) => {
-    //   const { lat, lng } = e.lngLat;
-    //   createDestinationMarker(lat, lng, map);
-    // });
+//     // map.on("click", (e) => {
+//     //   const { lat, lng } = e.lngLat;
+//     //   createDestinationMarker(lat, lng, map);
+//     // });
 
-    // 古いマーカーを削除
-    markersRef.current.forEach(({ cleanup }) => cleanup());
-    markersRef.current = [];
+//     // 古いマーカーを削除
+//     markersRef.current.forEach(({ cleanup }) => cleanup());
+//     markersRef.current = [];
 
-    (async () => {
-      const res = await fetchAllDestination();
+//     (async () => {
+//       const res = await fetchAllDestination();
 
-      res.forEach((x) => {
-        const { marker, cleanup } = createDestinationMarker(x);
-        marker.addTo(map);
-        markersRef.current.push({ marker, cleanup });
-      });
-    })();
+//       res.forEach((x) => {
+//         const { marker, cleanup } = createDestinationMarker(x);
+//         marker.addTo(map);
+//         markersRef.current.push({ marker, cleanup });
+//       });
+//     })();
 
-    setMap(map);
+//     setMap(map);
 
-    return () => {
-      markersRef.current.forEach(({ cleanup }) => cleanup());
-      markersRef.current = [];
-      map.remove();
-    };
-  }, []);
+//     return () => {
+//       markersRef.current.forEach(({ cleanup }) => cleanup());
+//       markersRef.current = [];
+//       map.remove();
+//     };
+//   }, []);
 
-  return { mapContainer };
-};
+//   return { mapContainer };
+// };
 
-export default useMap;
+// export default useMap;
