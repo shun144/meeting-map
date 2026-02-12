@@ -7,8 +7,16 @@ import { DestinationRepository } from "@/repositories/DestinationRepository";
 import maplibregl from "maplibre-gl";
 import { PMTiles, Protocol } from "pmtiles";
 import type React from "react";
-import { useEffect, useRef, useState, type FC } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FC,
+} from "react";
 import { useParams } from "react-router";
+import { createDestinationMarkerElem } from "@/presentations/map/helper";
 
 const PMTILES_URL =
   "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/mabashi.pmtiles";
@@ -21,6 +29,7 @@ const isMarker = (target: EventTarget | null): target is SVGAElement => {
 
 const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
   const { mapId } = useParams();
+  const repo = useMemo(() => new DestinationRepository(mapId), [mapId]);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
 
@@ -28,11 +37,73 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
     DestinationMarker[]
   >([]);
 
+  // useEffect(() => {
+  //   console.log(destinationMarkers.map((x) => x.getId()));
+  // }, [destinationMarkers]);
+
+  const onTitleChange = useCallback(
+    (
+      id: number,
+      latlng: maplibregl.LngLatLike,
+      newTitle: string,
+      markerElem: maplibregl.Marker,
+    ) => {
+      const isNew = id === 0;
+      const destinationId = isNew ? Date.now() : id;
+      const updDestination = new Destination(destinationId, latlng, newTitle);
+      const updDestinationMarker = new DestinationMarker(
+        updDestination,
+        markerElem,
+      );
+
+      if (isNew) {
+        setDestinationMarkers((prev) => [...prev, updDestinationMarker]);
+      } else {
+        setDestinationMarkers((prev) =>
+          prev.map((x) =>
+            x.getId() === destinationId ? updDestinationMarker : x,
+          ),
+        );
+      }
+
+      repo
+        .save(updDestination)
+        .then((savedDestination) => {
+          // const savedDestinationMarker = new DestinationMarker(
+          //   savedDestination,
+          //   markerElem,
+          // );
+          // if (!isNew) return;
+          // setDestinationMarkers((prev) =>
+          //   prev.map((x) =>
+          //     x.getId() === destinationId ? savedDestinationMarker : x,
+          //   ),
+          // );
+        })
+        .catch((error) => {
+          alert(isNew ? "保存に失敗しました" : "更新に失敗しました");
+
+          // if (isNew) {
+          //   setDestinationMarkers((prev) =>
+          //     prev.filter((x) => x.getId() !== destinationId),
+          //   );
+          //   newDestinationMarker.markerElem.remove();
+          // }
+        });
+    },
+    [repo],
+  );
+
   useEffect(() => {
     (async () => {
-      const repo = new DestinationRepository(mapId);
       const fetchedDestinations = await repo.findAll();
-      const data = fetchedDestinations.map((x) => new DestinationMarker(x));
+      const data = fetchedDestinations.map((destination) => {
+        const markerElem = createDestinationMarkerElem({
+          destination,
+          onTitleChange,
+        });
+        return new DestinationMarker(destination, markerElem);
+      });
       setDestinationMarkers(data);
     })();
 
@@ -59,11 +130,18 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
 
     mapInstance.on("click", (event) => {
       if (isMarker(event.originalEvent.target)) return;
-
       const newDestination = new Destination(0, event.lngLat, "");
-      const newDestinationMarker = new DestinationMarker(newDestination);
-      newDestinationMarker.dom.addTo(mapInstance);
-      setTimeout(() => newDestinationMarker.dom.togglePopup(), 0);
+      const markerElem = createDestinationMarkerElem({
+        destination: newDestination,
+        onTitleChange,
+      });
+
+      const newDestinationMarker = new DestinationMarker(
+        newDestination,
+        markerElem,
+      );
+      newDestinationMarker.markerElem.addTo(mapInstance);
+      setTimeout(() => newDestinationMarker.markerElem.togglePopup(), 0);
     });
 
     // mapInstance.on("touchend", (e) => {
@@ -101,18 +179,21 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
 
     return () => {
       mapInstance.remove();
-      destinationMarkers.forEach((marker) => marker.cleanup());
+      // destinationMarkers.forEach((marker) => marker.cleanup());
     };
-  }, []);
+  }, [repo]);
 
   useEffect(() => {
     // マップと目的地情報の両方がある場合にのみマーカー追加処理を行う
     if (!map || destinationMarkers.length === 0) return;
-    destinationMarkers.forEach((marker) => marker.dom.addTo(map));
 
-    return () => {
-      destinationMarkers.forEach((marker) => marker.cleanup());
-    };
+    destinationMarkers.forEach((destMarkers) => {
+      destMarkers.markerElem.addTo(map);
+    });
+
+    // return () => {
+    //   destinationMarkers.forEach((marker) => marker.cleanup());
+    // };
   }, [map, destinationMarkers]);
 
   // useEffect(() => {
