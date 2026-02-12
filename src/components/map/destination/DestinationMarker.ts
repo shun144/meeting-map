@@ -12,7 +12,6 @@ export const createDestinationMarker = ({
   destination,
   setDestinations,
 }: Args) => {
-  const div = document.createElement("div");
   const marker = new maplibregl.Marker({
     color: destination.id === 0 ? "red" : "#4285F4",
     className: styles.marker,
@@ -39,30 +38,34 @@ export const createDestinationMarker = ({
     }
 
     if (inputElem.value === destination.title) return;
+
+    const tempId = destination.id === 0 ? Date.now() : destination.id;
     const newDestination = new Destination(
-      destination.id,
+      tempId,
       destination.latlng,
       inputElem.value,
     );
-    const repo = new DestinationRepository();
-    const savedDestination = await repo.save(newDestination);
 
     if (destination.id === 0) {
-      setDestinations((prev) => [...prev, savedDestination]);
+      setDestinations((prev) => [...prev, newDestination]);
     } else {
       setDestinations((prev) =>
-        prev.map((x) => {
-          if (x.id === destination.id) {
-            return new Destination(
-              destination.id,
-              destination.latlng,
-              inputElem.value,
-            );
-          }
-          return x;
-        }),
+        prev.map((x) => (x.id === destination.id ? newDestination : x)),
       );
     }
+
+    const repo = new DestinationRepository();
+
+    repo
+      .save(newDestination)
+      .then((savedDestination) => {
+        setDestinations((prev) =>
+          prev.map((x) => (x.id === tempId ? savedDestination : x)),
+        );
+      })
+      .catch((error) => {
+        setDestinations((prev) => prev.filter((x) => x.id !== tempId));
+      });
   };
 
   popup.on("close", () => {

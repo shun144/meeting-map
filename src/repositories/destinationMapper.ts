@@ -3,7 +3,6 @@ import { Destination as DestinationClass } from "@/domains/Destination";
 import maplibregl from "maplibre-gl";
 import { type Tables } from "@/lib/supabase/schema";
 
-// 新規作成用（IDなし）
 export type CreateDestinationDTO = {
   title: string | null;
   lat: number;
@@ -11,7 +10,6 @@ export type CreateDestinationDTO = {
   map_id: string;
 };
 
-// 更新用（IDあり）
 export type UpdateDestinationDTO = CreateDestinationDTO & {
   id: number;
 };

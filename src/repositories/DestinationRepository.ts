@@ -7,9 +7,14 @@ import { type Tables } from "@/lib/supabase/schema";
 const DEFAULT_MAP_ID = "e7d98183-5ebe-4171-a364-2eb93cc6de97";
 
 export class DestinationRepository {
+  #mapId: string;
+  constructor(mapId?: string) {
+    this.#mapId = mapId ?? DEFAULT_MAP_ID;
+  }
+
   async save(destination: Destination): Promise<Destination> {
     try {
-      const dto = toDTO(destination, DEFAULT_MAP_ID);
+      const dto = toDTO(destination, this.#mapId);
 
       const { data, error } = await supabase
         .from("destination")
@@ -69,7 +74,7 @@ export class DestinationRepository {
       const { data, error } = await supabase
         .from("destination")
         .select("*")
-        .order("created_at", { ascending: false });
+        .eq("map_id", this.#mapId);
 
       if (error) {
         throw new Error(`目的地一覧の取得に失敗しました: ${error.message}`);
@@ -88,6 +93,31 @@ export class DestinationRepository {
       throw new Error("予期しないエラーが発生しました");
     }
   }
+
+  // async findAllByMapId(): Promise<Destination[]> {
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from("destination")
+  //       .select("*")
+  //       .eq("map_id", this.#mapId);
+
+  //     if (error) {
+  //       throw new Error(`目的地一覧の取得に失敗しました: ${error.message}`);
+  //     }
+
+  //     if (!data) {
+  //       return [];
+  //     }
+
+  //     return data.map((row) => fromDB(row as Tables<"destination">));
+  //   } catch (error) {
+  //     if (error instanceof Error) {
+  //       console.error("目的地一覧取得エラー:", error.message);
+  //       throw error;
+  //     }
+  //     throw new Error("予期しないエラーが発生しました");
+  //   }
+  // }
 
   async delete(id: number): Promise<void> {
     try {

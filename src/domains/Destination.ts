@@ -19,7 +19,4 @@ export class Destination {
     this.#title = title;
   }
 
-  // updateTitle(newTitle: string | null): void {
-  //   this.#title = newTitle;
-  // }
 }
