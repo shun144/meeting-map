@@ -13,8 +13,6 @@ import { useParams } from "react-router";
 import { createMap } from "./createMap";
 import useMapMarkers from "./useMapMarkers ";
 
-type Props = React.ComponentProps<"div">;
-
 // const isMarker = (target: EventTarget | null): target is SVGAElement => {
 //   return !!(target as HTMLElement).closest(".maplibregl-marker");
 // };
@@ -43,7 +41,7 @@ const isMarker = (
   );
 };
 
-const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
+const MeetMap = () => {
   const { mapId } = useParams();
   const repo = useMemo(() => new DestinationRepository(mapId), [mapId]);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -233,11 +231,7 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
     })();
   }, [mapState]);
 
-  return (
-    <div className={className}>
-      <div ref={mapContainerRef} className="h-full w-full" />;
-    </div>
-  );
+  return <div ref={mapContainerRef} className="h-full w-full" />;
 };
 
 export default MeetMap;

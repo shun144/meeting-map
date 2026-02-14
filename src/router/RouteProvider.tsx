@@ -1,13 +1,14 @@
-import App from "@/App";
-import { BrowserRouter, Routes, Route } from "react-router";
+import Home from "@/pages/Home";
+import Layout from "@/pages/Layout";
 import MeetMap from "@/pages/map/MeetMap";
-// import Sample from "@/Sample";
+import { BrowserRouter, Route, Routes } from "react-router";
 
 const RouteProvider = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<App />}>
+        <Route element={<Layout />}>
+          <Route index element={<Home />} />
           <Route path="map/:mapId" element={<MeetMap />} />
         </Route>
       </Routes>
