@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { NavLink } from "react-router";
 
 const Home = () => {
@@ -39,7 +39,7 @@ const Home = () => {
         {/* カードリスト */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <NavLink
-            to="/messages1"
+            to="/map/e7d98183-5ebe-4171-a364-2eb93cc6de97"
             className={({ isActive }) =>
               `group block p-6 sm:p-8 bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border-2 ${
                 isActive
@@ -155,4 +155,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default memo(Home);

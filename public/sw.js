@@ -12,9 +12,6 @@ precacheAndRoute(self.__WB_MANIFEST);
 self.addEventListener("install", function (event) {
   event.waitUntil(
     (async () => {
-      // const PMTILES_URL =
-      //   "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/disneyland.pmtiles";
-
       const PMTILES_URL =
         "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/mabashi.pmtiles";
 
