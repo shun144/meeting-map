@@ -185,21 +185,21 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
         resetTimer();
       });
 
-      mapInstance.on("mousedown", () => {
-        timerId.current = setInterval(() => (timer.current += 1), 300);
-      });
+      // mapInstance.on("mousedown", () => {
+      //   timerId.current = setInterval(() => (timer.current += 1), 300);
+      // });
 
-      mapInstance.on("mouseup", (event) => {
-        if (timer.current >= 1 && !isMarker(event)) {
-          const addedMarker = addMarker(mapInstance, 0, event.lngLat, "");
-          setTimeout(() => addedMarker?.togglePopup(), 0);
-        }
-        resetTimer();
-      });
+      // mapInstance.on("mouseup", (event) => {
+      //   if (timer.current >= 1 && !isMarker(event)) {
+      //     const addedMarker = addMarker(mapInstance, 0, event.lngLat, "");
+      //     setTimeout(() => addedMarker?.togglePopup(), 0);
+      //   }
+      //   resetTimer();
+      // });
 
-      mapInstance.on("movestart", () => {
-        resetTimer();
-      });
+      // mapInstance.on("movestart", () => {
+      //   resetTimer();
+      // });
 
       mapInstance.on("contextmenu", (event) => {
         if (isMarker(event)) {
