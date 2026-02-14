@@ -48,7 +48,7 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
   const repo = useMemo(() => new DestinationRepository(mapId), [mapId]);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapState, setMapState] = useState<maplibregl.Map | null>(null);
-  const { addMarker, removeMarker } = useMapMarkers(repo);
+  const { createMarker, removeMarker } = useMapMarkers(repo);
   const timerId = useRef<number | undefined>(undefined);
   const timer = useRef<number>(0);
 
@@ -156,21 +156,18 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
       };
 
       let isTouch = false;
-
       mapInstance.on("touchstart", () => {
-        console.log("touchstart");
         isTouch = true;
         if (timerId.current) {
           resetTimer();
           return;
         }
-
         timerId.current = setInterval(() => (timer.current += 1), 300);
       });
 
       mapInstance.on("touchend", (event) => {
         if (timer.current >= 1 && !isMarker(event)) {
-          const addedMarker = addMarker(mapInstance, 0, event.lngLat, "");
+          const addedMarker = createMarker(mapInstance, 0, event.lngLat, "");
           setTimeout(() => addedMarker?.togglePopup(), 0);
         }
         resetTimer();
@@ -196,7 +193,7 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
       mapInstance.on("mouseup", (event) => {
         if (isTouch) return;
         if (timer.current >= 1 && !isMarker(event)) {
-          const addedMarker = addMarker(mapInstance, 0, event.lngLat, "");
+          const addedMarker = createMarker(mapInstance, 0, event.lngLat, "");
           setTimeout(() => addedMarker?.togglePopup(), 0);
         }
         resetTimer();
@@ -232,7 +229,7 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
     if (!mapState) return;
     (async () => {
       const res = await repo.findAll();
-      res.forEach((x) => addMarker(mapState, x.id, x.latlng, x.title));
+      res.forEach((x) => createMarker(mapState, x.id, x.latlng, x.title));
     })();
   }, [mapState]);
 

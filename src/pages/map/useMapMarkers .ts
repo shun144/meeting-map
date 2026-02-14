@@ -14,7 +14,7 @@ const useMapMarkers = (repo: DestinationRepository) => {
   const [markers, setMarkers] = useState<MarkerWithId[]>([]);
   const markerInputsRef = useRef<Map<number, HTMLInputElement>>(new Map());
 
-  const addMarker = (
+  const createMarker = (
     map: maplibregl.Map | null,
     id: number,
     latlng: maplibregl.LngLatLike,
@@ -33,9 +33,57 @@ const useMapMarkers = (repo: DestinationRepository) => {
 
     setMarkers((prev) => [...prev, { id, title, marker: markerElem }]);
 
+    // ポップアップのコンテナを作成
+    const popupContainer = document.createElement("div");
+    popupContainer.className = styles.popupContainer;
+
+    // インプットラッパー（削除ボタンを配置するため）
+    const inputWrapper = document.createElement("div");
+    inputWrapper.className = styles.inputWrapper;
+
+    // インプット要素
     const inputElem = document.createElement("input");
     inputElem.className = styles.popupInput;
     inputElem.defaultValue = title;
+
+    // 削除ボタン（ゴミ箱アイコン）
+    const deleteButton = document.createElement("button");
+    deleteButton.className = styles.deleteButton;
+    deleteButton.type = "button";
+    deleteButton.setAttribute("aria-label", "削除");
+    deleteButton.innerHTML = `
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+  </svg>
+`;
+
+    // 削除ボタンのクリックイベント
+    deleteButton.addEventListener("click", () => {
+      if (!confirm("この目的地を削除しますか？")) {
+        return;
+      }
+
+      // ポップアップを閉じる
+      popupElem.remove();
+
+      // マーカーを地図から削除
+      markerElem.remove();
+
+      // state から削除
+      setMarkers((prev) => prev.filter((x) => x.id !== id));
+
+      // リポジトリから削除
+      repo.delete(id);
+
+      // inputElem の参照を削除
+      markerInputsRef.current.delete(id);
+    });
+
+    // コンテナに要素を追加
+    inputWrapper.appendChild(inputElem);
+    inputWrapper.appendChild(deleteButton);
+    popupContainer.appendChild(inputWrapper);
 
     const popupElem = new maplibregl.Popup({
       closeButton: false,
@@ -54,14 +102,13 @@ const useMapMarkers = (repo: DestinationRepository) => {
     });
 
     markerInputsRef.current.set(id, inputElem);
-    popupElem.setDOMContent(inputElem);
+    popupElem.setDOMContent(popupContainer);
     markerElem.setPopup(popupElem);
     markerElem.addTo(map);
 
     return markerElem;
   };
 
-  // TODO:削除失敗時の復元処理
   const removeMarker = (id: number) => {
     repo.delete(id);
     setMarkers((prev) => {
@@ -72,7 +119,7 @@ const useMapMarkers = (repo: DestinationRepository) => {
     });
   };
 
-  return { addMarker, removeMarker };
+  return { createMarker, removeMarker };
 };
 
 export default useMapMarkers;
