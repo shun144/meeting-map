@@ -10,13 +10,15 @@ interface Args {
     newTitle: string,
     markerElem: maplibregl.Marker,
   ) => void;
+  isNew?: boolean;
 }
 
 export const createDestinationMarkerElem = ({
   destination,
   onTitleChange,
+  isNew = false,
 }: Args): maplibregl.Marker => {
-  const isNew = destination.id === 0;
+  // const isNew = destination.id === 0;
   // const markerId = isNew ? Date.now() : destination.id;
 
   const markerElem = new maplibregl.Marker({
@@ -40,7 +42,7 @@ export const createDestinationMarkerElem = ({
   inputElem.addEventListener("change", onInputChange);
 
   const popupElem = new maplibregl.Popup({
-    closeButton: true,
+    closeButton: false,
   });
 
   popupElem.setDOMContent(inputElem);

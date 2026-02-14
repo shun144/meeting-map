@@ -1,11 +1,5 @@
-import { createDestinationMarker } from "@/components/map/destination/DestinationMarker";
-import { Destination } from "@/domains/Destination";
-import { DestinationMarker } from "@/presentations/map/DestinationMarker";
-import { mabashiStyle } from "@/hooks/map/mabashiStyle";
-import { fetchAllDestination } from "@/lib/supabase/supabaseFunction";
 import { DestinationRepository } from "@/repositories/DestinationRepository";
 import maplibregl from "maplibre-gl";
-import { PMTiles, Protocol } from "pmtiles";
 import type React from "react";
 import {
   useCallback,
@@ -16,205 +10,186 @@ import {
   type FC,
 } from "react";
 import { useParams } from "react-router";
-import { createDestinationMarkerElem } from "@/presentations/map/helper";
-
-const PMTILES_URL =
-  "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/mabashi.pmtiles";
+import { createMap } from "./createMap";
+import useMapMarkers from "./useMapMarkers ";
 
 type Props = React.ComponentProps<"div">;
 
-const isMarker = (target: EventTarget | null): target is SVGAElement => {
-  return !!(target as HTMLElement).closest(".maplibregl-marker");
+// const isMarker = (target: EventTarget | null): target is SVGAElement => {
+//   return !!(target as HTMLElement).closest(".maplibregl-marker");
+// };
+
+// 線形補間
+function lerp(start: number, end: number, t: number): number {
+  return start + (end - start) * t;
+}
+
+// イージング（最初は速く、後でゆっくり減速する動きを作る関数）
+function easeOutQuad(t: number): number {
+  return 1 - (1 - t) * (1 - t);
+}
+
+const isMarker = (event: maplibregl.MapMouseEvent & Object) => {
+  return Boolean(
+    (event.originalEvent.target as HTMLElement).closest(".maplibregl-marker"),
+  );
 };
 
 const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
   const { mapId } = useParams();
   const repo = useMemo(() => new DestinationRepository(mapId), [mapId]);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<maplibregl.Map | null>(null);
-
-  const [destinationMarkers, setDestinationMarkers] = useState<
-    DestinationMarker[]
-  >([]);
-
-  // useEffect(() => {
-  //   console.log(destinationMarkers.map((x) => x.getId()));
-  // }, [destinationMarkers]);
-
-  const onTitleChange = useCallback(
-    (
-      id: number,
-      latlng: maplibregl.LngLatLike,
-      newTitle: string,
-      markerElem: maplibregl.Marker,
-    ) => {
-      const isNew = id === 0;
-      const destinationId = isNew ? Date.now() : id;
-      const updDestination = new Destination(destinationId, latlng, newTitle);
-      const updDestinationMarker = new DestinationMarker(
-        updDestination,
-        markerElem,
-      );
-
-      if (isNew) {
-        setDestinationMarkers((prev) => [...prev, updDestinationMarker]);
-      } else {
-        setDestinationMarkers((prev) =>
-          prev.map((x) =>
-            x.getId() === destinationId ? updDestinationMarker : x,
-          ),
-        );
-      }
-
-      repo
-        .save(updDestination)
-        .then((savedDestination) => {
-          // const savedDestinationMarker = new DestinationMarker(
-          //   savedDestination,
-          //   markerElem,
-          // );
-          // if (!isNew) return;
-          // setDestinationMarkers((prev) =>
-          //   prev.map((x) =>
-          //     x.getId() === destinationId ? savedDestinationMarker : x,
-          //   ),
-          // );
-        })
-        .catch((error) => {
-          alert(isNew ? "保存に失敗しました" : "更新に失敗しました");
-
-          // if (isNew) {
-          //   setDestinationMarkers((prev) =>
-          //     prev.filter((x) => x.getId() !== destinationId),
-          //   );
-          //   newDestinationMarker.markerElem.remove();
-          // }
-        });
-    },
-    [repo],
-  );
+  const [mapState, setMapState] = useState<maplibregl.Map | null>(null);
+  const { addMarker, removeMarker } = useMapMarkers(repo);
+  const timerId = useRef<number | undefined>(undefined);
+  const timer = useRef<number>(0);
 
   useEffect(() => {
-    (async () => {
-      const fetchedDestinations = await repo.findAll();
-      const data = fetchedDestinations.map((destination) => {
-        const markerElem = createDestinationMarkerElem({
-          destination,
-          onTitleChange,
-        });
-        return new DestinationMarker(destination, markerElem);
-      });
-      setDestinationMarkers(data);
-    })();
-
     if (!mapContainerRef.current) return;
-
-    const protocol = new Protocol();
-    maplibregl.addProtocol("pmtiles", protocol.tile);
-    const pmtiles = new PMTiles(PMTILES_URL);
-    protocol.add(pmtiles);
-
-    const mapInstance = new maplibregl.Map({
-      container: mapContainerRef.current,
-      center: [139.918839, 35.815512],
-      zoom: 18,
-      maxZoom: 20,
-      minZoom: 15,
-      style: mabashiStyle,
-      doubleClickZoom: false,
-    });
+    const mapInstance = createMap(mapContainerRef.current);
 
     mapInstance.on("load", () => {
-      setMap(mapInstance);
-    });
+      setMapState(mapInstance);
 
-    mapInstance.on("click", (event) => {
-      if (isMarker(event.originalEvent.target)) return;
-      const newDestination = new Destination(0, event.lngLat, "");
-      const markerElem = createDestinationMarkerElem({
-        destination: newDestination,
-        onTitleChange,
+      mapInstance.addControl(new maplibregl.NavigationControl());
+
+      const geolocateControl = new maplibregl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true, // アプリケーションが可能な限り最良の結果を得たいことを示すブール値です。true の場合、デバイスがより正確な位置情報を提供できる場合は、その情報を提供します。ただし、これにより応答時間が遅くなったり、消費電力が増加したりする可能性があります（例えば、モバイルデバイスに GPS チップが搭載されている場合など）。一方、false の場合、デバイスは応答速度を速めたり、消費電力を抑えたりすることでリソースを節約できます。デフォルト: false
+        },
+        trackUserLocation: true,
+        showAccuracyCircle: false,
+        showUserLocation: false,
+        fitBoundsOptions: {
+          maxZoom: 19,
+          linear: true,
+          duration: 0,
+        },
+      });
+      mapInstance.addControl(geolocateControl);
+
+      let currentPos: maplibregl.LngLat | null = null;
+      let animationId: number | null = null;
+
+      const userMarker = new maplibregl.Marker({ color: "red" });
+
+      // from地点からto地点まで0.6秒かけてユーザーマーカーをなめらかに移動
+      function smoothMoveUserMarker(
+        from: maplibregl.LngLat,
+        to: maplibregl.LngLat,
+      ) {
+        const startTime = performance.now(); // アニメーション開始時刻（ミリ秒）
+        const duration = 600;
+
+        const animate = (currentTime: number) => {
+          // ① 経過時間を計算
+          const elapsed = currentTime - startTime;
+          // 例: 開始から300ms経過していたら elapsed = 300
+
+          // ② 進行度を0〜1の範囲で計算
+          const progress = Math.min(elapsed / duration, 1);
+          // 例: 300ms / 600ms = 0.5（50%進行）
+          // Math.minで1を超えないように制限
+
+          // ③ イージングを適用（動きに変化をつける）
+          const eased = easeOutQuad(progress);
+          // progress=0.5 → eased=0.75
+          // 最初は速く動き、後半はゆっくり減速
+
+          // ④ 現在の位置を計算
+          const lng = lerp(from.lng, to.lng, eased);
+          const lat = lerp(from.lat, to.lat, eased);
+          // 例: from.lng=139.0, to.lng=139.1, eased=0.75
+          //     → lng = 139.0 + (139.1-139.0) * 0.75 = 139.075
+
+          // ⑤ マーカーを移動
+          userMarker.setLngLat([lng, lat]);
+
+          // ⑥ まだ終わってなければ次のフレームを予約
+          if (progress < 1) {
+            // window.requestAnimationFrame()
+            // ブラウザにアニメーションを行いたいことを通知
+            // 次の再描画の前にコールバック引数を実行させる
+            animationId = requestAnimationFrame(animate);
+          }
+        };
+
+        // 前のアニメーションがあればキャンセル
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+
+        // 新しいアニメーション開始
+        animationId = requestAnimationFrame(animate);
+      }
+
+      geolocateControl.on("geolocate", (event) => {
+        const newPos = new maplibregl.LngLat(
+          event.coords.longitude,
+          event.coords.latitude,
+        );
+
+        if (!currentPos) {
+          currentPos = newPos;
+          userMarker.setLngLat(newPos).addTo(mapInstance);
+          mapInstance.jumpTo({ center: newPos, zoom: 18 });
+          return;
+        }
+
+        smoothMoveUserMarker(currentPos, newPos);
+        currentPos = newPos;
       });
 
-      const newDestinationMarker = new DestinationMarker(
-        newDestination,
-        markerElem,
-      );
-      newDestinationMarker.markerElem.addTo(mapInstance);
-      setTimeout(() => newDestinationMarker.markerElem.togglePopup(), 0);
+      const resetTimer = () => {
+        clearInterval(timerId.current);
+        timerId.current = undefined;
+        timer.current = 0;
+      };
+
+      mapInstance.on("mousedown", () => {
+        timerId.current = setInterval(() => (timer.current += 1), 300);
+      });
+
+      mapInstance.on("mouseup", (event) => {
+        if (timer.current >= 1 && !isMarker(event)) {
+          const addedMarker = addMarker(mapInstance, 0, event.lngLat, "");
+          setTimeout(() => addedMarker?.togglePopup(), 0);
+        }
+        resetTimer();
+      });
+
+      mapInstance.on("movestart", () => {
+        resetTimer();
+      });
+
+      mapInstance.on("contextmenu", (event) => {
+        if (isMarker(event)) {
+          const targetMarkerElem = (
+            event.originalEvent.target as HTMLElement
+          ).closest(".maplibregl-marker");
+
+          if (!targetMarkerElem) return;
+          const targetMarkerId = targetMarkerElem.getAttribute(
+            "data-destination-marker-id",
+          );
+          if (!targetMarkerId) return;
+          removeMarker(parseInt(targetMarkerId));
+        }
+      });
     });
-
-    // mapInstance.on("touchend", (e) => {
-    //   alert(e.lngLat);
-    // });
-
-    // mapInstance.on("click", (event) => {
-    //   if (isMarker(event.originalEvent.target)) return;
-
-    //   const newDestination = new Destination(0, event.lngLat, "");
-    //   const { marker, cleanup } = createDestinationMarker({
-    //     destination: newDestination,
-    //     setDestinations,
-    //   });
-    //   marker.addTo(mapInstance);
-    //   marker.togglePopup();
-    //   cleanups.push({ cleanup });
-    // });
-
-    // mapInstance.on("contextmenu", async (event) => {
-    //   const eventTarget = event.originalEvent.target;
-    //   if (isMarker(eventTarget)) {
-    //     const targetId = eventTarget
-    //       .closest(".maplibregl-marker")!
-    //       .getAttribute("data-destination-id");
-
-    //     const id = parseInt(targetId ?? "0");
-    //     if (id === 0) return;
-    //     setDestinations((prev) => prev.filter((x) => x.id !== id));
-
-    //     const repo = new DestinationRepository();
-    //     await repo.delete(id);
-    //   }
-    // });
 
     return () => {
-      mapInstance.remove();
-      // destinationMarkers.forEach((marker) => marker.cleanup());
+      // console.log(markers);
     };
-  }, [repo]);
+  }, []);
 
   useEffect(() => {
-    // マップと目的地情報の両方がある場合にのみマーカー追加処理を行う
-    if (!map || destinationMarkers.length === 0) return;
-
-    destinationMarkers.forEach((destMarkers) => {
-      destMarkers.markerElem.addTo(map);
-    });
-
-    // return () => {
-    //   destinationMarkers.forEach((marker) => marker.cleanup());
-    // };
-  }, [map, destinationMarkers]);
-
-  // useEffect(() => {
-  //   // マップと目的地情報の両方がある場合にのみマーカー追加処理を行う
-  //   if (!map || !destinations) return;
-
-  //   const cleanups: Array<{ cleanup: () => void }> = [];
-
-  //   destinations.forEach((destination) => {
-  //     const destinationMarker = new DestinationMarker(destination);
-
-  //     // const { marker, cleanup } = createDestinationMarker({
-  //     //   destination,
-  //     //   setDestinations,
-  //     // });
-  //     destinationMarker.dom.addTo(map);
-  //     // cleanups.push({ cleanup });
-  //   });
-
-  //   return () => cleanups.forEach(({ cleanup }) => cleanup());
-  // }, [map, destinations]);
+    if (!mapState) return;
+    (async () => {
+      const res = await repo.findAll();
+      res.forEach((x) => addMarker(mapState, x.id, x.latlng, x.title));
+    })();
+  }, [mapState]);
 
   return (
     <div className={className}>
@@ -224,127 +199,3 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
 };
 
 export default MeetMap;
-
-// import { createDestinationMarker } from "@/components/map/destination/DestinationMarker";
-// import { Destination } from "@/domains/Destination";
-// import { mabashiStyle } from "@/hooks/map/mabashiStyle";
-// import { fetchAllDestination } from "@/lib/supabase/supabaseFunction";
-// import { DestinationRepository } from "@/repositories/DestinationRepository";
-// import maplibregl from "maplibre-gl";
-// import { PMTiles, Protocol } from "pmtiles";
-// import type React from "react";
-// import { useEffect, useRef, useState, type FC } from "react";
-// import { useParams } from "react-router";
-
-// type Props = React.ComponentProps<"div">;
-
-// const isMarker = (target: EventTarget | null): target is SVGAElement => {
-//   return !!(target as HTMLElement).closest(".maplibregl-marker");
-// };
-
-// const Map: FC<Props> = ({ className = "flex-1" }) => {
-//   const [map, setMap] = useState<maplibregl.Map | null>(null);
-//   const [destinations, setDestinations] = useState<Destination[]>([]);
-//   const mapContainerRef = useRef<HTMLDivElement>(null);
-
-//   const { mapId } = useParams();
-
-//   useEffect(() => {
-//     (async () => {
-//       const repo = new DestinationRepository(mapId);
-//       const res = await repo.findAll();
-//       // const res = await fetchAllDestination();
-//       setDestinations(res);
-//     })();
-
-//     if (!mapContainerRef.current) return;
-
-//     const PMTILES_URL =
-//       "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/mabashi.pmtiles";
-
-//     const protocol = new Protocol();
-//     maplibregl.addProtocol("pmtiles", protocol.tile);
-//     const pmtiles = new PMTiles(PMTILES_URL);
-//     protocol.add(pmtiles);
-
-//     const mapInstance = new maplibregl.Map({
-//       container: mapContainerRef.current,
-//       center: [139.918839, 35.815512],
-//       zoom: 18,
-//       maxZoom: 20,
-//       minZoom: 15,
-//       style: mabashiStyle,
-//       doubleClickZoom: false,
-//     });
-
-//     mapInstance.on("load", () => {
-//       setMap(mapInstance);
-//     });
-
-//     const cleanups: Array<{ cleanup: () => void }> = [];
-
-//     // mapInstance.on("touchend", (e) => {
-//     //   alert(e.lngLat);
-//     // });
-
-//     mapInstance.on("click", (event) => {
-//       if (isMarker(event.originalEvent.target)) return;
-
-//       const newDestination = new Destination(0, event.lngLat, "");
-//       const { marker, cleanup } = createDestinationMarker({
-//         destination: newDestination,
-//         setDestinations,
-//       });
-//       marker.addTo(mapInstance);
-//       marker.togglePopup();
-//       cleanups.push({ cleanup });
-//     });
-
-//     mapInstance.on("contextmenu", async (event) => {
-//       const eventTarget = event.originalEvent.target;
-//       if (isMarker(eventTarget)) {
-//         const targetId = eventTarget
-//           .closest(".maplibregl-marker")!
-//           .getAttribute("data-destination-id");
-
-//         const id = parseInt(targetId ?? "0");
-//         if (id === 0) return;
-//         setDestinations((prev) => prev.filter((x) => x.id !== id));
-
-//         const repo = new DestinationRepository();
-//         await repo.delete(id);
-//       }
-//     });
-
-//     return () => {
-//       mapInstance.remove();
-//       cleanups.forEach(({ cleanup }) => cleanup());
-//     };
-//   }, []);
-
-//   useEffect(() => {
-//     // マップと目的地情報の両方がある場合にのみマーカー追加処理を行う
-//     if (!map || !destinations) return;
-
-//     const cleanups: Array<{ cleanup: () => void }> = [];
-
-//     destinations.forEach((destination) => {
-//       const { marker, cleanup } = createDestinationMarker({
-//         destination,
-//         setDestinations,
-//       });
-//       marker.addTo(map);
-//       cleanups.push({ cleanup });
-//     });
-
-//     return () => cleanups.forEach(({ cleanup }) => cleanup());
-//   }, [map, destinations]);
-
-//   return (
-//     <div className={className}>
-//       <div ref={mapContainerRef} className="h-full w-full" />;
-//     </div>
-//   );
-// };
-
-// export default Map;
