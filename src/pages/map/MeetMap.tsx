@@ -29,7 +29,15 @@ function easeOutQuad(t: number): number {
   return 1 - (1 - t) * (1 - t);
 }
 
-const isMarker = (event: maplibregl.MapMouseEvent & Object) => {
+// const isMarker = (event: maplibregl.MapMouseEvent) => {
+//   return Boolean(
+//     (event.originalEvent.target as HTMLElement).closest(".maplibregl-marker"),
+//   );
+// };
+
+const isMarker = (
+  event: maplibregl.MapMouseEvent | maplibregl.MapTouchEvent,
+) => {
   return Boolean(
     (event.originalEvent.target as HTMLElement).closest(".maplibregl-marker"),
   );
@@ -106,6 +114,8 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
           userMarker.setLngLat([lng, lat]);
 
           // ⑥ まだ終わってなければ次のフレームを予約
+          // アニメーションが完了していない（600ms経過していない）場合
+          // 次のフレーム（約16ms後）で同じanimate関数をもう一度実行する
           if (progress < 1) {
             // window.requestAnimationFrame()
             // ブラウザにアニメーションを行いたいことを通知
@@ -145,6 +155,35 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
         timerId.current = undefined;
         timer.current = 0;
       };
+
+      // mapInstance.on("touchstart", () => {
+      //   console.log("touchstart");
+      // });
+
+      // mapInstance.on("touchend", (event) => {
+      //   // console.log(event.lngLat);
+      //   console.log(isMarker(event));
+      // });
+
+      // mapInstance.on("touchmove", () => {
+      //   // console.log("touchmove");
+      // });
+
+      mapInstance.on("touchstart", () => {
+        timerId.current = setInterval(() => (timer.current += 1), 300);
+      });
+
+      mapInstance.on("touchend", (event) => {
+        if (timer.current >= 1 && !isMarker(event)) {
+          const addedMarker = addMarker(mapInstance, 0, event.lngLat, "");
+          setTimeout(() => addedMarker?.togglePopup(), 0);
+        }
+        resetTimer();
+      });
+
+      mapInstance.on("touchmove", () => {
+        resetTimer();
+      });
 
       mapInstance.on("mousedown", () => {
         timerId.current = setInterval(() => (timer.current += 1), 300);
