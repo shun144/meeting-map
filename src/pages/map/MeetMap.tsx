@@ -81,7 +81,6 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
 
       const userMarker = new maplibregl.Marker({ color: "red" });
 
-      // from地点からto地点まで0.6秒かけてユーザーマーカーをなめらかに移動
       function smoothMoveUserMarker(
         from: maplibregl.LngLat,
         to: maplibregl.LngLat,
@@ -157,7 +156,6 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
       };
 
       mapInstance.on("touchstart", () => {
-        // すでにタイマーが動いている = マルチタッチ
         if (timerId.current) {
           resetTimer();
           return;
@@ -182,18 +180,17 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
         resetTimer();
       });
 
-      // mapInstance.on("touchstart", () => {
-      //   console.log("touchstart");
-      // });
+      mapInstance.on("mousedown", () => {
+        alert("mousedown");
+      });
 
-      // mapInstance.on("touchend", (event) => {
-      //   // console.log(event.lngLat);
-      //   console.log(isMarker(event));
-      // });
+      mapInstance.on("mouseup", () => {
+        alert("mouseup");
+      });
 
-      // mapInstance.on("touchmove", () => {
-      //   // console.log("touchmove");
-      // });
+      mapInstance.on("movestart", () => {
+        alert("movestart");
+      });
 
       // mapInstance.on("mousedown", () => {
       //   timerId.current = setInterval(() => (timer.current += 1), 300);
