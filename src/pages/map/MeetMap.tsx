@@ -155,7 +155,7 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
         timer.current = 0;
       };
 
-      mapInstance.on("mousedown", () => {
+      mapInstance.on("touchstart", () => {
         if (timerId.current) {
           resetTimer();
           return;
@@ -164,7 +164,7 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
         timerId.current = setInterval(() => (timer.current += 1), 300);
       });
 
-      mapInstance.on("mouseup", (event) => {
+      mapInstance.on("touchend", (event) => {
         if (timer.current >= 1 && !isMarker(event)) {
           const addedMarker = addMarker(mapInstance, 0, event.lngLat, "");
           setTimeout(() => addedMarker?.togglePopup(), 0);
@@ -172,7 +172,7 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
         resetTimer();
       });
 
-      mapInstance.on("movestart", () => {
+      mapInstance.on("touchmove", () => {
         resetTimer();
       });
 
