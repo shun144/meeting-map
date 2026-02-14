@@ -156,20 +156,13 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
         timer.current = 0;
       };
 
-      // mapInstance.on("touchstart", () => {
-      //   console.log("touchstart");
-      // });
-
-      // mapInstance.on("touchend", (event) => {
-      //   // console.log(event.lngLat);
-      //   console.log(isMarker(event));
-      // });
-
-      // mapInstance.on("touchmove", () => {
-      //   // console.log("touchmove");
-      // });
-
       mapInstance.on("touchstart", () => {
+        // すでにタイマーが動いている = マルチタッチ
+        if (timerId.current) {
+          resetTimer();
+          return;
+        }
+
         timerId.current = setInterval(() => (timer.current += 1), 300);
       });
 
@@ -184,6 +177,23 @@ const MeetMap: FC<Props> = ({ className = "flex-1" }) => {
       mapInstance.on("touchmove", () => {
         resetTimer();
       });
+
+      mapInstance.on("touchcancel", () => {
+        resetTimer();
+      });
+
+      // mapInstance.on("touchstart", () => {
+      //   console.log("touchstart");
+      // });
+
+      // mapInstance.on("touchend", (event) => {
+      //   // console.log(event.lngLat);
+      //   console.log(isMarker(event));
+      // });
+
+      // mapInstance.on("touchmove", () => {
+      //   // console.log("touchmove");
+      // });
 
       // mapInstance.on("mousedown", () => {
       //   timerId.current = setInterval(() => (timer.current += 1), 300);
