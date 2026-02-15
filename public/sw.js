@@ -67,6 +67,7 @@ const openDatabase = () => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   const params = url.searchParams;
+  const method = event.request.method;
 
   if (url.pathname.endsWith(".pmtiles")) {
     handlePMTilesRequest(event, url);
@@ -74,6 +75,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   const isDestinationFetchQuery =
+    method === "GET" &&
     url.pathname.includes("/rest/v1/destination") &&
     params.get("select") === "*" &&
     params.has("map_id");
@@ -117,6 +119,36 @@ self.addEventListener("fetch", (event) => {
 
     return;
   }
+
+  // const isDestinationUpsertQuery =
+  //   method === "POST" &&
+  //   url.pathname.includes("/rest/v1/destination") &&
+  //   params.has("select");
+
+  // if (isDestinationUpsertQuery) {
+  //   event.respondWith(
+  //     (async () => {
+  //       const orgRes = await fetch(event.request);
+  //       if (!orgRes.ok) return orgRes;
+
+  //       const clonedRes = orgRes.clone();
+  //       event.waitUntil(
+  //         (async () => {
+  //           const data = {
+  //             map_id,
+  //             headers: extractHeaders(clonedRes.headers),
+  //             body: await clonedRes.json(),
+  //           };
+  //           await saveData(OBJECT_STORE_DESTINATIONS, data);
+  //         })(),
+  //       );
+
+  //       return orgRes;
+  //     })(),
+  //   );
+
+  //   return;
+  // }
 });
 
 // ヘッダー保存戦略の設定
