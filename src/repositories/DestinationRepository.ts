@@ -16,6 +16,7 @@ export class DestinationRepository {
     try {
       const dto = toDTO(destination, this.#mapId);
 
+      debugger;
       const { data, error } = await supabase
         .from("destination")
         .upsert(dto)

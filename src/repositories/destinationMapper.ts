@@ -40,7 +40,7 @@ export const toDTO = (
   }
 
   const baseDTO: DestinationDTO = {
-    id: destination.id,
+    id: destination.id === 0 ? Date.now() : destination.id,
     title: destination.title || null,
     lat,
     lng,

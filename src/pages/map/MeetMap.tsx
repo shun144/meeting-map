@@ -185,7 +185,7 @@ const MeetMap = () => {
           resetTimer();
           return;
         }
-        timerId.current = setInterval(() => (timer.current += 1), 300);
+        timerId.current = setInterval(() => (timer.current += 1), 150);
       });
 
       mapInstance.on("mouseup", (event) => {
@@ -202,20 +202,20 @@ const MeetMap = () => {
         resetTimer();
       });
 
-      mapInstance.on("contextmenu", (event) => {
-        if (isMarker(event)) {
-          const targetMarkerElem = (
-            event.originalEvent.target as HTMLElement
-          ).closest(".maplibregl-marker");
+      // mapInstance.on("contextmenu", (event) => {
+      //   if (isMarker(event)) {
+      //     const targetMarkerElem = (
+      //       event.originalEvent.target as HTMLElement
+      //     ).closest(".maplibregl-marker");
 
-          if (!targetMarkerElem) return;
-          const targetMarkerId = targetMarkerElem.getAttribute(
-            "data-destination-marker-id",
-          );
-          if (!targetMarkerId) return;
-          removeMarker(parseInt(targetMarkerId));
-        }
-      });
+      //     if (!targetMarkerElem) return;
+      //     const targetMarkerId = targetMarkerElem.getAttribute(
+      //       "data-destination-marker-id",
+      //     );
+      //     if (!targetMarkerId) return;
+      //     removeMarker(parseInt(targetMarkerId));
+      //   }
+      // });
     });
 
     return () => {
