@@ -9,23 +9,28 @@ cleanupOutdatedCaches();
 // fetchイベント時に、リクエストされたURLがプリキャッシュにあれば、キャッシュから返す
 precacheAndRoute(self.__WB_MANIFEST);
 
-self.addEventListener("install", function (event) {});
+self.addEventListener("install", function (event) {
+  self.skipWaiting();
+});
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+const DATABASE_NAME = "offlineMapDataBase";
+const OBJECT_STORE_NAME = "pmtiles";
+
 const openDatabase = () => {
   return new Promise((resolve, reject) => {
     // この時点では、まだデータベースは開かれていない
     // requestは「データベースを開く作業を表すオブジェクト」
-    const openRequest = indexedDB.open("offlineMapDataBase", 1);
+    const openRequest = indexedDB.open(DATABASE_NAME, 1);
 
     // データベースが初めて作成される時、またはバージョンが上がった時のイベント
     openRequest.onupgradeneeded = function () {
       const db = this.result;
-      if (!db.objectStoreNames.contains("pmtiles")) {
-        db.createObjectStore("pmtiles", {
+      if (!db.objectStoreNames.contains(OBJECT_STORE_NAME)) {
+        db.createObjectStore(OBJECT_STORE_NAME, {
           keyPath: ["area", "version"],
         });
       }
@@ -126,8 +131,8 @@ function createPMTilesResponse(request, arrayBuffer) {
 const getData = async (key) => {
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(["pmtiles"], "readonly");
-    const store = transaction.objectStore("pmtiles");
+    const transaction = db.transaction([OBJECT_STORE_NAME], "readonly");
+    const store = transaction.objectStore(OBJECT_STORE_NAME);
     const getRequest = store.get(key);
     getRequest.onsuccess = () => resolve(getRequest.result);
     getRequest.onerror = () => reject(getRequest.error);
@@ -138,39 +143,11 @@ const saveData = async (data) => {
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(["pmtiles"], "readwrite");
-    const store = transaction.objectStore("pmtiles");
+    const transaction = db.transaction([OBJECT_STORE_NAME], "readwrite");
+    const store = transaction.objectStore(OBJECT_STORE_NAME);
 
     const request = store.put(data);
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
 };
-
-// const saveToIndexedDB = async (key, data) => {
-//   const db = await openDatabase();
-
-//   return new Promise((resolve, reject) => {
-//     // db.transaction(アクセスしたいストア名,許可する権限)
-//     // これから tdl ストアに書き込み操作をします」と宣言している
-//     // 第一引数には配列で複数のストアを指定可能
-//     const transaction = db.transaction(["tdl"], "readwrite");
-//     const store = transaction.objectStore("tdl");
-
-//     const request = store.put(data, key);
-//     request.onsuccess = () => resolve();
-//     request.onerror = () => reject(request.error);
-//   });
-// };
-
-// const getFromIndexedDB = async (key) => {
-//   const db = await openDatabase();
-//   return new Promise((resolve, reject) => {
-//     const transaction = db.transaction(["tdl"], "readonly");
-//     const store = transaction.objectStore("tdl");
-//     const request = store.get(key);
-
-//     request.onsuccess = () => resolve(request.result);
-//     request.onerror = () => reject(request.error);
-//   });
-// };
