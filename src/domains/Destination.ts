@@ -3,7 +3,7 @@ import maplibregl from "maplibre-gl";
 export class Destination {
   id: number;
   #latlng: maplibregl.LngLatLike;
-  #title: string | null;
+  #title: string;
 
   get latlng() {
     return this.#latlng;
@@ -13,10 +13,9 @@ export class Destination {
     return this.#title ?? "";
   }
 
-  constructor(id: number, latlng: maplibregl.LngLatLike, title: string | null) {
+  constructor(id: number, latlng: maplibregl.LngLatLike, title: string) {
     this.id = id;
     this.#latlng = latlng;
     this.#title = title;
   }
-
 }

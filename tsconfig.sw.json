@@ -6,10 +6,12 @@
     "moduleResolution": "bundler",
     "strict": true,
     "types": ["@types/serviceworker"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": true
+    // "baseUrl": ".",
+    // "paths": {
+    //   "@/*": ["src/*"]
+    // }
   },
-  "include": [
-    "src/service-worker.ts",
-    "src/lib/indexedDB/**/*" // 共通コード
-  ]
+  "include": ["src/serviceWorker.ts", "src/lib/indexedDB/**/*"]
 }

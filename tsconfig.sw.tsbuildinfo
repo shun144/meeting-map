@@ -1,0 +1,1 @@
+{"root":["./src/serviceworker.ts","./src/lib/indexeddb/constants.ts","./src/lib/indexeddb/database.ts","./src/lib/indexeddb/types.ts"],"version":"5.9.3"}

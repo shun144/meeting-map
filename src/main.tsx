@@ -6,7 +6,9 @@ import RouteProvider from "./router/RouteProvider.tsx";
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
-    .register("/sw.js", { updateViaCache: "none" })
+    .register("/serviceWorker.js", {
+      updateViaCache: "none",
+    })
     .then((registration) => {
       registration.update();
     })

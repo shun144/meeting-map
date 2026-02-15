@@ -14,7 +14,7 @@ export const fetchAllDestination = async (): Promise<Destination[]> => {
     }
 
     const destinations = data.map((x) => {
-      return new Destination(x.id, [x.lng, x.lat], x.title);
+      return new Destination(x.id, [x.lng, x.lat], x.title ?? "");
     });
 
     return destinations;

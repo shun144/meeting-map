@@ -2,6 +2,7 @@ import type { Destination } from "@/domains/Destination";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { toDTO, fromDB } from "./destinationMapper";
 import { type Tables } from "@/lib/supabase/schema";
+import { saveDestination, deleteDestination } from "@/lib/indexedDB/database";
 
 // const DEFAULT_MAP_ID = import.meta.env.VITE_DEFAULT_MAP_ID as string;
 const DEFAULT_MAP_ID = "e7d98183-5ebe-4171-a364-2eb93cc6de97";
@@ -29,6 +30,8 @@ export class DestinationRepository {
       if (!data) {
         throw new Error("目的地の保存に失敗しました");
       }
+
+      saveDestination(dto);
 
       return fromDB(data as Tables<"destination">);
     } catch (error) {
@@ -76,8 +79,6 @@ export class DestinationRepository {
         .select("*")
         .eq("map_id", this.#mapId);
 
-      console.log({ data });
-
       if (error) {
         throw new Error(`目的地一覧の取得に失敗しました: ${error.message}`);
       }
@@ -106,6 +107,8 @@ export class DestinationRepository {
       if (error) {
         throw new Error(`目的地の削除に失敗しました: ${error.message}`);
       }
+
+      deleteDestination([this.#mapId, id]);
     } catch (error) {
       if (error instanceof Error) {
         console.error("目的地削除エラー:", error.message);

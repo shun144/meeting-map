@@ -16,7 +16,7 @@ import { type Tables } from "@/lib/supabase/schema";
 
 export type DestinationDTO = {
   id: number;
-  title: string | null;
+  title: string;
   lat: number;
   lng: number;
   map_id: string;
@@ -41,7 +41,7 @@ export const toDTO = (
 
   const baseDTO: DestinationDTO = {
     id: destination.id === 0 ? Date.now() : destination.id,
-    title: destination.title || null,
+    title: destination.title,
     lat,
     lng,
     map_id: mapId,
@@ -51,7 +51,7 @@ export const toDTO = (
 };
 
 export const fromDB = (row: Tables<"destination">): Destination => {
-  return new DestinationClass(row.id, [row.lng, row.lat], row.title);
+  return new DestinationClass(row.id, [row.lng, row.lat], row.title ?? "");
 };
 
 // import type { Destination } from "@/domains/Destination";
