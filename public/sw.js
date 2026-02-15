@@ -18,22 +18,39 @@ self.addEventListener("activate", (event) => {
 });
 
 const DATABASE_NAME = "offlineMapDataBase";
-const OBJECT_STORE_NAME = "pmtiles";
+const DATABASE_VERSION = 2;
+const OBJECT_STORE_PMTILES = "pmtiles";
+const OBJECT_STORE_DESTINATIONS = "destinations";
 
 const openDatabase = () => {
   return new Promise((resolve, reject) => {
     // この時点では、まだデータベースは開かれていない
     // requestは「データベースを開く作業を表すオブジェクト」
-    const openRequest = indexedDB.open(DATABASE_NAME, 1);
+    const openRequest = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
 
     // データベースが初めて作成される時、またはバージョンが上がった時のイベント
-    openRequest.onupgradeneeded = function () {
+    openRequest.onupgradeneeded = function (event) {
       const db = this.result;
-      if (!db.objectStoreNames.contains(OBJECT_STORE_NAME)) {
-        db.createObjectStore(OBJECT_STORE_NAME, {
-          keyPath: ["area", "version"],
+      const oldVersion = event.oldVersion;
+
+      console.log({ oldVersion });
+
+      // 古いバージョンなら全削除して再作成
+      if (oldVersion > 0) {
+        // 既存のオブジェクトストアを全削除
+        const storeNames = Array.from(db.objectStoreNames);
+        storeNames.forEach((name) => {
+          db.deleteObjectStore(name);
         });
       }
+
+      db.createObjectStore(OBJECT_STORE_PMTILES, {
+        keyPath: ["area", "version"],
+      });
+
+      db.createObjectStore(OBJECT_STORE_DESTINATIONS, {
+        keyPath: ["map_id"],
+      });
     };
 
     openRequest.onsuccess = function () {
@@ -49,44 +66,136 @@ const openDatabase = () => {
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
+  const params = url.searchParams;
 
   if (url.pathname.endsWith(".pmtiles")) {
-    const regex = /(?<version>version\d+)\/(?<area>[^\/]+)\.pmtiles$/;
-    const { area, version } = url.pathname.match(regex).groups;
+    handlePMTilesRequest(event, url);
+    return;
+  }
+
+  const isDestinationFetchQuery =
+    url.pathname.includes("/rest/v1/destination") &&
+    params.get("select") === "*" &&
+    params.has("map_id");
+
+  if (isDestinationFetchQuery) {
+    const regex = /eq\.(?<map_id>.*$)/;
+    const { map_id } = params.get("map_id")?.match(regex)?.groups;
 
     event.respondWith(
       (async () => {
-        try {
-          const resDB = await getData([area, version]);
+        const cached = await getData(OBJECT_STORE_DESTINATIONS, [map_id]);
 
-          if (resDB && resDB.pmtiles) {
-            // キャッシュヒット
-            return createPMTilesResponse(event.request, resDB.pmtiles);
-          }
+        if (cached) {
+          const headers = new Headers(cached.headers);
+          headers.set("x-cache-source", "indexeddb");
+          const response = new Response(JSON.stringify(cached.body), {
+            headers,
+          });
+          return response;
+        }
 
-          // キャッシュミス
-          const orgRes = await fetch(event.request);
-          if (!orgRes.ok) return orgRes;
+        const orgRes = await fetch(event.request);
+        if (!orgRes.ok) return orgRes;
 
-          // indexedDBにpmtiles全量を保存
-          event.waitUntil(
-            (async () => {
-              try {
-                const fullRange = await fetch(url.href);
-                const pmtiles = await fullRange.arrayBuffer();
-                await saveData({ area, version, pmtiles });
-              } catch (error) {
-                console.error("全量取得に失敗しました", error);
-              }
-            })(),
-          );
+        const clonedRes = orgRes.clone();
+        event.waitUntil(
+          (async () => {
+            const data = {
+              map_id,
+              headers: extractHeaders(clonedRes.headers),
+              body: await clonedRes.json(),
+            };
 
-          return orgRes;
-        } catch (error) {}
+            await saveData(OBJECT_STORE_DESTINATIONS, data);
+          })(),
+        );
+
+        return orgRes;
       })(),
     );
+
+    return;
   }
 });
+
+// ヘッダー保存戦略の設定
+const HEADER_STRATEGY = {
+  // 必ず保存するヘッダー
+  required: ["content-type", "content-range", "content-profile", "vary"],
+
+  // オプションで保存（あれば保存）
+  optional: [
+    "cache-control",
+    "etag",
+    "last-modified",
+    "content-encoding",
+    "vary",
+  ],
+
+  // 除外するヘッダー（セキュリティ・一時的なもの）
+  exclude: [
+    "set-cookie",
+    "cf-ray",
+    "x-envoy-attempt-count",
+    "x-envoy-upstream-service-time",
+    "server-timing",
+    "date",
+  ],
+};
+
+function extractHeaders(headers) {
+  const extracted = {};
+
+  HEADER_STRATEGY.required.forEach((key) => {
+    const value = headers.get(key);
+    if (value) extracted[key] = value;
+  });
+
+  HEADER_STRATEGY.optional.forEach((key) => {
+    const value = headers.get(key);
+    if (value) extracted[key] = value;
+  });
+
+  return extracted;
+}
+
+function handlePMTilesRequest(event, url) {
+  const regex = /(?<version>version\d+)\/(?<area>[^\/]+)\.pmtiles$/;
+  const { area, version } = url.pathname.match(regex).groups;
+
+  event.respondWith(
+    (async () => {
+      try {
+        const resDB = await getData(OBJECT_STORE_PMTILES, [area, version]);
+
+        if (resDB && resDB.pmtiles) {
+          // キャッシュヒット
+          return createPMTilesResponse(event.request, resDB.pmtiles);
+        }
+
+        // キャッシュミス
+        const orgRes = await fetch(event.request);
+        if (!orgRes.ok) return orgRes;
+
+        // indexedDBにpmtiles全量を保存
+        event.waitUntil(
+          (async () => {
+            try {
+              const fullRange = await fetch(url.href);
+              const pmtiles = await fullRange.arrayBuffer();
+              await saveData(OBJECT_STORE_PMTILES, { area, version, pmtiles });
+            } catch (error) {
+              console.error("全量取得に失敗しました", error);
+            }
+          })(),
+        );
+
+        return orgRes;
+      } catch (error) {}
+    })(),
+  );
+}
 
 function createPMTilesResponse(request, arrayBuffer) {
   const rangeHeader = request.headers.get("Range");
@@ -128,23 +237,23 @@ function createPMTilesResponse(request, arrayBuffer) {
   });
 }
 
-const getData = async (key) => {
+const getData = async (objectStoreName, key) => {
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction([OBJECT_STORE_NAME], "readonly");
-    const store = transaction.objectStore(OBJECT_STORE_NAME);
+    const transaction = db.transaction([objectStoreName], "readonly");
+    const store = transaction.objectStore(objectStoreName);
     const getRequest = store.get(key);
     getRequest.onsuccess = () => resolve(getRequest.result);
     getRequest.onerror = () => reject(getRequest.error);
   });
 };
 
-const saveData = async (data) => {
+const saveData = async (objectStoreName, data) => {
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction([OBJECT_STORE_NAME], "readwrite");
-    const store = transaction.objectStore(OBJECT_STORE_NAME);
+    const transaction = db.transaction([objectStoreName], "readwrite");
+    const store = transaction.objectStore(objectStoreName);
 
     const request = store.put(data);
     request.onsuccess = () => resolve();
