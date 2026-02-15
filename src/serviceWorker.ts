@@ -32,18 +32,18 @@ self.addEventListener("fetch", (event) => {
   const params = url.searchParams;
   const method = event.request.method;
 
-  const isPmtiles = url.pathname.endsWith(".pmtiles");
+  const isPMTilesQuery = url.pathname.endsWith(".pmtiles");
+
+  if (isPMTilesQuery) {
+    handlePMTilesRequest(event, url);
+    return;
+  }
 
   const isDestinationFetchQuery =
     method === "GET" &&
     url.pathname.includes("/rest/v1/destination") &&
     params.get("select") === "*" &&
     params.has("map_id");
-
-  if (isPmtiles) {
-    handlePMTilesRequest(event, url);
-    return;
-  }
 
   if (isDestinationFetchQuery) {
     handleDestinationRequest(event, params);

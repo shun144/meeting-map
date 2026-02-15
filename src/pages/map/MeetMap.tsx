@@ -77,7 +77,13 @@ const MeetMap = () => {
       let currentPos: maplibregl.LngLat | null = null;
       let animationId: number | null = null;
 
-      const userMarker = new maplibregl.Marker({ color: "red" });
+      // let userMarker: maplibregl.Marker | null = null;
+
+      // let userMarker: maplibregl.Marker | null = new maplibregl.Marker({
+      //   color: "red",
+      // });
+
+      const userMarker = new maplibregl.Marker({ color: "red", opacity: "0" });
 
       function smoothMoveUserMarker(
         from: maplibregl.LngLat,
@@ -145,6 +151,17 @@ const MeetMap = () => {
 
         smoothMoveUserMarker(currentPos, newPos);
         currentPos = newPos;
+      });
+
+      geolocateControl.on("userlocationfocus", function () {
+        userMarker.setOpacity("1");
+      });
+
+      geolocateControl.on("trackuserlocationstart", () => {
+        userMarker.setOpacity("1");
+      });
+      geolocateControl.on("trackuserlocationend", () => {
+        userMarker.setOpacity("0");
       });
 
       const resetTimer = () => {
