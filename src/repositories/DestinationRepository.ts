@@ -76,6 +76,8 @@ export class DestinationRepository {
         .select("*")
         .eq("map_id", this.#mapId);
 
+      console.log({ data });
+
       if (error) {
         throw new Error(`目的地一覧の取得に失敗しました: ${error.message}`);
       }

@@ -18,7 +18,7 @@ self.addEventListener("activate", (event) => {
 });
 
 const DATABASE_NAME = "offlineMapDataBase";
-const DATABASE_VERSION = 2;
+const DATABASE_VERSION = 5;
 const OBJECT_STORE_PMTILES = "pmtiles";
 const OBJECT_STORE_DESTINATIONS = "destinations";
 
@@ -33,8 +33,6 @@ const openDatabase = () => {
       const db = this.result;
       const oldVersion = event.oldVersion;
 
-      console.log({ oldVersion });
-
       // 古いバージョンなら全削除して再作成
       if (oldVersion > 0) {
         // 既存のオブジェクトストアを全削除
@@ -48,8 +46,12 @@ const openDatabase = () => {
         keyPath: ["area", "version"],
       });
 
-      db.createObjectStore(OBJECT_STORE_DESTINATIONS, {
-        keyPath: ["map_id"],
+      const storeDestination = db.createObjectStore(OBJECT_STORE_DESTINATIONS, {
+        keyPath: ["map_id", "id"],
+      });
+
+      storeDestination.createIndex("map_idx", "map_id", {
+        unique: false,
       });
     };
 
@@ -86,12 +88,16 @@ self.addEventListener("fetch", (event) => {
 
     event.respondWith(
       (async () => {
-        const cached = await getData(OBJECT_STORE_DESTINATIONS, [map_id]);
+        const cached = await getAllData(OBJECT_STORE_DESTINATIONS, map_id);
 
         if (cached) {
-          const headers = new Headers(cached.headers);
-          headers.set("x-cache-source", "indexeddb");
-          const response = new Response(JSON.stringify(cached.body), {
+          const headers = new Headers({
+            "Content-Type": "application/json; charset=utf-8",
+            "x-cache-source": "indexeddb",
+          });
+
+          const response = new Response(JSON.stringify(cached), {
+            status: 200,
             headers,
           });
           return response;
@@ -103,13 +109,20 @@ self.addEventListener("fetch", (event) => {
         const clonedRes = orgRes.clone();
         event.waitUntil(
           (async () => {
-            const data = {
-              map_id,
-              headers: extractHeaders(clonedRes.headers),
-              body: await clonedRes.json(),
-            };
+            const destinations = await clonedRes.json();
 
-            await saveData(OBJECT_STORE_DESTINATIONS, data);
+            const promises = destinations.map(({ id, title, lat, lng }) => {
+              const data = {
+                map_id,
+                id,
+                title,
+                lat,
+                lng,
+              };
+              saveData(OBJECT_STORE_DESTINATIONS, data);
+            });
+
+            await Promise.allSettled(promises);
           })(),
         );
 
@@ -119,36 +132,6 @@ self.addEventListener("fetch", (event) => {
 
     return;
   }
-
-  // const isDestinationUpsertQuery =
-  //   method === "POST" &&
-  //   url.pathname.includes("/rest/v1/destination") &&
-  //   params.has("select");
-
-  // if (isDestinationUpsertQuery) {
-  //   event.respondWith(
-  //     (async () => {
-  //       const orgRes = await fetch(event.request);
-  //       if (!orgRes.ok) return orgRes;
-
-  //       const clonedRes = orgRes.clone();
-  //       event.waitUntil(
-  //         (async () => {
-  //           const data = {
-  //             map_id,
-  //             headers: extractHeaders(clonedRes.headers),
-  //             body: await clonedRes.json(),
-  //           };
-  //           await saveData(OBJECT_STORE_DESTINATIONS, data);
-  //         })(),
-  //       );
-
-  //       return orgRes;
-  //     })(),
-  //   );
-
-  //   return;
-  // }
 });
 
 // ヘッダー保存戦略の設定
@@ -277,6 +260,19 @@ const getData = async (objectStoreName, key) => {
     const getRequest = store.get(key);
     getRequest.onsuccess = () => resolve(getRequest.result);
     getRequest.onerror = () => reject(getRequest.error);
+  });
+};
+
+const getAllData = async (objectStoreName, key) => {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([objectStoreName], "readonly");
+    const store = transaction.objectStore(objectStoreName);
+    const index = store.index("map_idx");
+    const getAllRequest = index.getAll(key);
+
+    getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+    getAllRequest.onerror = () => reject(getAllRequest.error);
   });
 };
 

@@ -30,5 +30,5 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src", "public/sw.js"]
+  "include": ["src"]
 }
