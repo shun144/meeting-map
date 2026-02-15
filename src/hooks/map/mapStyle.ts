@@ -1,5 +1,5 @@
 const PMTILES_URL =
-  "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/disneyland.pmtiles";
+  "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/version1/disneyland.pmtiles";
 
 export const mapStyle: maplibregl.StyleSpecification = {
   version: 8,

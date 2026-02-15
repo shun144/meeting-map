@@ -1,5 +1,5 @@
 const PMTILES_URL =
-  "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/mabashi.pmtiles";
+  "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/version1/mabashi.pmtiles";
 
 export const mabashiStyle: maplibregl.StyleSpecification = {
   version: 8,
