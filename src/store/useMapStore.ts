@@ -2,6 +2,7 @@ import { create } from "zustand";
 import maplibregl from "maplibre-gl";
 import { fetchAllDestination } from "@/lib/supabase/supabaseFunction";
 import type { Destination } from "@/domains/Destination";
+import type { Json } from "@/lib/supabase/schema";
 
 interface Store {
   map: maplibregl.Map | null;
@@ -11,6 +12,12 @@ interface Store {
   fetchDestinations: () => Promise<void>;
   destinations: Destination[];
   isDestLoading: boolean;
+
+  currentMapInfo: {
+    src: string;
+    style: Json;
+  } | null;
+  setCurrentMapInfo: (payload: { src: string; style: Json }) => void;
 }
 
 export const useMapStore = create<Store>((set, get) => ({
@@ -31,5 +38,10 @@ export const useMapStore = create<Store>((set, get) => ({
       }
       throw new Error("目的地の取得時に予期しないエラーが発生しました");
     }
+  },
+
+  currentMapInfo: null,
+  setCurrentMapInfo: (payload) => {
+    set({ currentMapInfo: payload });
   },
 }));

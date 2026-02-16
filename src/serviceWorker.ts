@@ -1,9 +1,16 @@
-import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
+import {
+  precacheAndRoute,
+  cleanupOutdatedCaches,
+  createHandlerBoundToURL,
+} from "workbox-precaching";
+import { NavigationRoute, registerRoute } from "workbox-routing";
 import {
   fetchPMTiles,
   savePMTiles,
   fetchAllDestinations,
   saveDestinations,
+  fetchMaps,
+  saveMaps,
 } from "./lib/indexedDB/database";
 declare let self: ServiceWorkerGlobalScope;
 
@@ -16,7 +23,17 @@ cleanupOutdatedCaches();
 // fetchイベント時に、リクエストされたURLがプリキャッシュにあれば、キャッシュから返す
 precacheAndRoute(self.__WB_MANIFEST);
 
-self.addEventListener("install", (event) => {
+// react-routerによる仮想ナビゲーションをservice workerに伝える
+const handler = createHandlerBoundToURL("/index.html");
+const navigationRoute = new NavigationRoute(handler, {
+  allowlist: [
+    /^\/$/, // ルートパス
+    /^\/map\//, // /map/で始まるパス
+  ],
+});
+registerRoute(navigationRoute);
+
+self.addEventListener("install", () => {
   // 待機しているサービスワーカーがアクティブになるように強制
   // onActivateのevent.waitUntil(self.clients.claim())と併用することで
   // サービスワーカーの更新が即座に反映される
@@ -31,6 +48,16 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   const params = url.searchParams;
   const method = event.request.method;
+
+  const isMapFetchQuery =
+    method === "GET" &&
+    url.pathname.includes("/rest/v1/map") &&
+    params.get("select") === "id,name";
+
+  if (isMapFetchQuery) {
+    handleMapsRequest(event);
+    return;
+  }
 
   const isPMTilesQuery = url.pathname.endsWith(".pmtiles");
 
@@ -50,6 +77,44 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 });
+
+function handleMapsRequest(event: FetchEvent) {
+  event.respondWith(
+    (async () => {
+      const cached = await fetchMaps();
+
+      if (cached.length > 0) {
+        const headers = new Headers({
+          "Content-Type": "application/json; charset=utf-8",
+          "x-cache-source": "indexeddb",
+        });
+
+        return new Response(JSON.stringify(cached), {
+          status: 200,
+          headers,
+        });
+      }
+
+      const orgRes = await fetch(event.request);
+
+      if (!orgRes.ok) return orgRes;
+
+      const clonedRes = orgRes.clone();
+
+      event.waitUntil(
+        (async () => {
+          const payloads = (await clonedRes.json()) as {
+            id: string;
+            name: string;
+          }[];
+          saveMaps(payloads);
+        })(),
+      );
+
+      return orgRes;
+    })(),
+  );
+}
 
 function handlePMTilesRequest(event: FetchEvent, url: URL) {
   const regex = /(?<version>version\d+)\/(?<area>[^\/]+)\.pmtiles$/;

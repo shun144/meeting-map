@@ -1,3 +1,8 @@
+export interface MapCache {
+  id: string;
+  name: string;
+}
+
 export interface PmtilesCache {
   area: string;
   version: string;

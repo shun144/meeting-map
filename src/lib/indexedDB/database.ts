@@ -1,4 +1,8 @@
-import { type PmtilesCache, type DestinationCache } from "./types";
+import {
+  type PmtilesCache,
+  type DestinationCache,
+  type MapCache,
+} from "./types";
 import { DB_NAME, DB_VERSION, storeNames } from "./constants";
 
 function openDataBase(): Promise<IDBDatabase> {
@@ -14,6 +18,10 @@ function openDataBase(): Promise<IDBDatabase> {
           db.deleteObjectStore(storeName);
         });
       }
+
+      db.createObjectStore(storeNames.MAPS, {
+        keyPath: ["id", "name"],
+      });
 
       db.createObjectStore(storeNames.PMTILES, {
         keyPath: ["area", "version"],
@@ -36,6 +44,41 @@ function openDataBase(): Promise<IDBDatabase> {
   });
 }
 
+export async function fetchMaps() {
+  const db = await openDataBase();
+  return new Promise<MapCache[]>((resolve, reject) => {
+    const tx = db.transaction([storeNames.MAPS], "readwrite");
+    const store = tx.objectStore(storeNames.MAPS);
+    const getRequest = store.getAll();
+    getRequest.onsuccess = function () {
+      resolve(this.result);
+    };
+    getRequest.onerror = function () {
+      reject(this.error);
+    };
+  });
+}
+
+export async function saveMaps(payloads: MapCache[]) {
+  const db = await openDataBase();
+  const tx = db.transaction([storeNames.MAPS], "readwrite");
+  const store = tx.objectStore(storeNames.MAPS);
+
+  const promises = payloads.map((payload) => {
+    return new Promise<void>((resolve, reject) => {
+      const putRequest = store.put(payload);
+      putRequest.onsuccess = function () {
+        resolve();
+      };
+      putRequest.onerror = function () {
+        reject(this.error);
+      };
+    });
+  });
+
+  return Promise.allSettled(promises);
+}
+
 export async function fetchPMTiles(key: IDBValidKey) {
   const db = await openDataBase();
   return new Promise<PmtilesCache>((resolve, reject) => {
@@ -46,6 +89,21 @@ export async function fetchPMTiles(key: IDBValidKey) {
       resolve(this.result);
     };
     getRequest.onerror = function () {
+      reject(this.error);
+    };
+  });
+}
+
+export async function savePMTiles(payload: PmtilesCache): Promise<void> {
+  const db = await openDataBase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([storeNames.PMTILES], "readwrite");
+    const store = tx.objectStore(storeNames.PMTILES);
+    const putRequest = store.put(payload);
+    putRequest.onsuccess = function () {
+      resolve();
+    };
+    putRequest.onerror = function () {
       reject(this.error);
     };
   });
@@ -62,21 +120,6 @@ export async function fetchAllDestinations(key: IDBValidKey) {
       resolve(this.result);
     };
     getAllRequest.onerror = function () {
-      reject(this.error);
-    };
-  });
-}
-
-export async function savePMTiles(payload: PmtilesCache): Promise<void> {
-  const db = await openDataBase();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction([storeNames.PMTILES], "readwrite");
-    const store = tx.objectStore(storeNames.PMTILES);
-    const putRequest = store.put(payload);
-    putRequest.onsuccess = function () {
-      resolve();
-    };
-    putRequest.onerror = function () {
       reject(this.error);
     };
   });

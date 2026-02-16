@@ -1,21 +1,9 @@
 import { DestinationRepository } from "@/repositories/DestinationRepository";
 import maplibregl from "maplibre-gl";
-import type React from "react";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type FC,
-} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { createMap } from "./createMap";
 import useMapMarkers from "./useMapMarkers ";
-
-// const isMarker = (target: EventTarget | null): target is SVGAElement => {
-//   return !!(target as HTMLElement).closest(".maplibregl-marker");
-// };
 
 // 線形補間
 function lerp(start: number, end: number, t: number): number {
@@ -26,12 +14,6 @@ function lerp(start: number, end: number, t: number): number {
 function easeOutQuad(t: number): number {
   return 1 - (1 - t) * (1 - t);
 }
-
-// const isMarker = (event: maplibregl.MapMouseEvent) => {
-//   return Boolean(
-//     (event.originalEvent.target as HTMLElement).closest(".maplibregl-marker"),
-//   );
-// };
 
 const isMarker = (
   event: maplibregl.MapMouseEvent | maplibregl.MapTouchEvent,
@@ -51,8 +33,12 @@ const MeetMap = () => {
   const timer = useRef<number>(0);
 
   useEffect(() => {
-    if (!mapContainerRef.current) return;
-    const mapInstance = createMap(mapContainerRef.current);
+    if (!mapContainerRef.current || !mapId) return;
+    const mapInstance = createMap(mapId, mapContainerRef.current);
+
+    let currentPos: maplibregl.LngLat | null = null;
+    let animationId: number | null = null;
+    const userMarker = new maplibregl.Marker({ color: "red", opacity: "0" });
 
     mapInstance.on("load", () => {
       setMapState(mapInstance);
@@ -73,17 +59,6 @@ const MeetMap = () => {
         },
       });
       mapInstance.addControl(geolocateControl);
-
-      let currentPos: maplibregl.LngLat | null = null;
-      let animationId: number | null = null;
-
-      // let userMarker: maplibregl.Marker | null = null;
-
-      // let userMarker: maplibregl.Marker | null = new maplibregl.Marker({
-      //   color: "red",
-      // });
-
-      const userMarker = new maplibregl.Marker({ color: "red", opacity: "0" });
 
       function smoothMoveUserMarker(
         from: maplibregl.LngLat,
@@ -218,25 +193,33 @@ const MeetMap = () => {
         if (isTouch) return;
         resetTimer();
       });
-
-      // mapInstance.on("contextmenu", (event) => {
-      //   if (isMarker(event)) {
-      //     const targetMarkerElem = (
-      //       event.originalEvent.target as HTMLElement
-      //     ).closest(".maplibregl-marker");
-
-      //     if (!targetMarkerElem) return;
-      //     const targetMarkerId = targetMarkerElem.getAttribute(
-      //       "data-destination-marker-id",
-      //     );
-      //     if (!targetMarkerId) return;
-      //     removeMarker(parseInt(targetMarkerId));
-      //   }
-      // });
     });
 
     return () => {
-      // console.log(markers);
+      // 1. タイマークリア
+      if (timerId.current) {
+        clearInterval(timerId.current);
+        timerId.current = undefined;
+      }
+      timer.current = 0;
+
+      // 2. アニメーションキャンセル
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+
+      // 3. ユーザーマーカー削除
+      if (userMarker) {
+        userMarker.remove();
+      }
+
+      // 4. マップインスタンス破棄（イベントリスナ・コントロールは自動削除）
+      if (mapInstance) {
+        mapInstance.remove();
+      }
+
+      // 5. ステートクリア
+      setMapState(null);
     };
   }, []);
 
