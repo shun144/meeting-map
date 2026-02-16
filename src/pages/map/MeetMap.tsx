@@ -135,8 +135,20 @@ const MeetMap = () => {
       geolocateControl.on("trackuserlocationstart", () => {
         userMarker.setOpacity("1");
       });
-      geolocateControl.on("trackuserlocationend", () => {
+      geolocateControl.on("trackuserlocationend", (event) => {
         userMarker.setOpacity("0");
+      });
+
+      geolocateControl.on("error", (error) => {
+        console.error("位置情報エラー:", error.code, error.message);
+
+        if (error.code === 1) {
+          // 位置情報の許可を求める
+          alert("位置情報の使用を許可してください");
+        } else if (error.code === 3) {
+          // タイムアウト
+          console.log("位置情報の取得がタイムアウトしました");
+        }
       });
 
       const resetTimer = () => {

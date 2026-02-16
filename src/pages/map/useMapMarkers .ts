@@ -60,7 +60,7 @@ const useMapMarkers = (repo: DestinationRepository) => {
 
     // 削除ボタンのクリックイベント
     deleteButton.addEventListener("click", () => {
-      if (!confirm("この目的地を削除しますか？")) {
+      if (inputElem.value !== "" && !confirm("この目的地を削除しますか？")) {
         return;
       }
 
