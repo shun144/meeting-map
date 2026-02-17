@@ -30,6 +30,31 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
+      // 歩道
+      {
+        id: "footway-fill",
+        source: "tdl",
+        "source-layer": "disneyland",
+        type: "fill",
+        filter: ["==", "highway", "pedestrian"],
+        paint: {
+          "fill-color": "#dddde8",
+          "fill-opacity": 1,
+        },
+      },
+
+      // {
+      //   id: "footway-outline",
+      //   source: "tdl",
+      //   "source-layer": "disneyland",
+      //   type: "line",
+      //   filter: ["==", "highway", "pedestrian"],
+      //   paint: {
+      //     "line-color": "#bbbbbb",
+      //     "line-width": 1,
+      //   },
+      // },
+
       // 緑地・公園
       {
         id: "landuse-green",
@@ -39,7 +64,7 @@ export const disneylandMapStyle: MapSrcStyle = {
         filter: ["in", "landuse", "forest", "grass", "park", "garden"],
         paint: {
           "fill-color": "#d4edda",
-          "fill-opacity": 0.6,
+          "fill-opacity": 1,
         },
       },
 
@@ -52,11 +77,11 @@ export const disneylandMapStyle: MapSrcStyle = {
         filter: ["==", "natural", "water"],
         paint: {
           "fill-color": "#aad3df",
-          "fill-opacity": 0.8,
+          "fill-opacity": 1,
         },
       },
 
-      // 建物（基本）
+      // 建物
       {
         id: "buildings",
         source: "tdl",
@@ -66,10 +91,15 @@ export const disneylandMapStyle: MapSrcStyle = {
         minzoom: 15,
         paint: {
           "fill-color": "#e0e0e0",
-          "fill-opacity": 0.7,
+          "fill-opacity": 1,
         },
+        // paint: {
+        //   "fill-color": "#e0e0e0",
+        //   "fill-opacity": 0.7,
+        // },
       },
 
+      // 建物（アウトライン）
       {
         id: "buildings-outline",
         source: "tdl",
@@ -82,6 +112,122 @@ export const disneylandMapStyle: MapSrcStyle = {
           "line-width": 1,
         },
       },
+
+      // // 主要道路
+      // {
+      //   id: "roads-main",
+      //   source: "tdl",
+      //   "source-layer": "disneyland",
+      //   type: "line",
+      //   filter: ["in", "highway", "motorway", "trunk", "primary", "secondary"],
+      //   paint: {
+      //     "line-color": "#fcd6a4",
+      //     "line-width": [
+      //       "interpolate",
+      //       ["linear"],
+      //       ["zoom"],
+      //       16,
+      //       2,
+      //       17,
+      //       4,
+      //       19,
+      //       8,
+      //     ],
+      //   },
+      // },
+
+      // // 歩道
+      // {
+      //   id: "roads-footway",
+      //   source: "tdl",
+      //   "source-layer": "disneyland",
+      //   type: "line",
+      //   filter: ["in", "highway", "footway", "path", "pedestrian"],
+      //   paint: {
+      //     "line-color": "#dddde8",
+      //     "line-width": [
+      //       "interpolate",
+      //       ["linear"],
+      //       ["zoom"],
+      //       16,
+      //       0.5,
+      //       17,
+      //       1,
+      //       19,
+      //       3, // 歩道は主要道路より細め
+      //     ],
+      //   },
+      // },
+
+      // その他
+      {
+        id: "roads-other",
+        source: "tdl",
+        "source-layer": "disneyland",
+        type: "line",
+        filter: [
+          "all",
+          ["has", "highway"],
+          [
+            "!in",
+            "highway",
+            "motorway",
+            "trunk",
+            "primary",
+            "secondary",
+            "footway",
+            "path",
+            "pedestrian",
+          ],
+        ],
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            16,
+            1,
+            17,
+            2,
+            19,
+            4,
+          ],
+        },
+      },
+
+      // // 道路ライン
+      // {
+      //   id: "roads",
+      //   source: "tdl",
+      //   "source-layer": "disneyland",
+      //   type: "line",
+      //   filter: ["has", "highway"],
+      //   paint: {
+      //     "line-color": [
+      //       "match",
+      //       ["get", "highway"],
+      //       ["motorway", "trunk"],
+      //       "#e892a2", // 主要道路: ピンク系
+      //       ["primary", "secondary"],
+      //       "#fcd6a4", // 一般道路: 薄オレンジ
+      //       ["footway", "path", "pedestrian"],
+      //       "#dddde8", // 歩道: 薄グレー
+      //       "#ffffff", // その他: 白
+      //     ],
+      //     "line-width": [
+      //       "interpolate",
+      //       ["linear"],
+      //       ["zoom"],
+      //       16,
+      //       0.5,
+      //       17,
+      //       1,
+      //       19,
+      //       6,
+      //     ],
+      //   },
+      // },
 
       // // アトラクション（目立つ色）
       // {
@@ -108,37 +254,31 @@ export const disneylandMapStyle: MapSrcStyle = {
       //   },
       // },
 
-      // 道路（幅と色を改善）
       {
-        id: "roads",
+        id: "flowerbed",
         source: "tdl",
         "source-layer": "disneyland",
-        type: "line",
-        filter: ["has", "highway"],
-        // minzoom: 16,
+        type: "fill",
+        filter: ["==", "landuse", "flowerbed"],
         paint: {
-          "line-color": [
-            "match",
-            ["get", "highway"],
-            ["motorway", "trunk"],
-            "#e892a2", // 主要道路: ピンク系
-            ["primary", "secondary"],
-            "#fcd6a4", // 一般道路: 薄オレンジ
-            ["footway", "path", "pedestrian"],
-            "#dddde8", // 歩道: 薄グレー
-            "#ffffff", // その他: 白
-          ],
-          "line-width": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            16,
-            0.5,
-            17,
-            1,
-            19,
-            6,
-          ],
+          "fill-color": "#a8d5a2", // 花壇らしい緑
+          "fill-opacity": 0.7,
+        },
+      },
+
+      // トイレ
+      {
+        id: "toilets",
+        source: "tdl",
+        "source-layer": "disneyland",
+        type: "symbol",
+        filter: ["==", "amenity", "toilets"],
+        minzoom: 16,
+        layout: {
+          "icon-image": "toilet-icon",
+          "icon-size": 0.5,
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
         },
       },
 
@@ -233,7 +373,7 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
-      // アトラクション名（重要施設 - OSM標準より少し大きめ）
+      // アトラクション名
       {
         id: "attraction-labels",
         source: "tdl",
@@ -268,7 +408,7 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
-      // レストラン・ショップ名（OSM標準サイズ）
+      // レストラン・ショップ名
       {
         id: "amenity-labels",
         source: "tdl",
@@ -288,25 +428,20 @@ export const disneylandMapStyle: MapSrcStyle = {
             ["linear"],
             ["zoom"],
             17,
-            12, // 大きめに
+            12,
             18,
             14,
             19,
             16,
             20,
-            18, // さらに拡大時も対応
-            // 17,
-            // 9, // z17: 9px
-            // 18,
-            // 10, // z18: 10px
-            // 19,
-            // 11, // z19: 11px
+            18,
           ],
-          "text-anchor": "center",
+          "text-anchor": "top", // アイコンの上端を基準に
+          "text-offset": [0, 1], // 下に1em分ずらす
           "text-max-width": 10,
         },
         paint: {
-          "text-color": "#666666",
+          "text-color": "#ff6347",
           "text-halo-color": "#ffffff",
           "text-halo-width": 1.5,
         },
@@ -342,7 +477,7 @@ export const disneylandMapStyle: MapSrcStyle = {
           "text-max-width": 10,
         },
         paint: {
-          "text-color": "#888888",
+          "text-color": "red",
           "text-halo-color": "#ffffff",
           "text-halo-width": 1,
         },

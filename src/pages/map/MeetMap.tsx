@@ -40,11 +40,61 @@ const MeetMap = () => {
     let animationId: number | null = null;
     const userMarker = new maplibregl.Marker({ color: "red", opacity: "0" });
 
+    mapInstance.on("click", (e) => {
+      const features = mapInstance.queryRenderedFeatures(e.point);
+
+      features.forEach((f) => {
+        console.log("geometry:", f.geometry.type); // Polygon / LineString / Point
+        console.log("layer:", f.layer.id); // どのレイヤーか
+        console.log("properties:", f.properties); // 全属性
+        console.log("");
+      });
+    });
+
     mapInstance.on("load", () => {
       setMapState(mapInstance);
 
-      console.log("maxBounds:", mapInstance.getMaxBounds());
-      console.log("現在の表示範囲:", mapInstance.getBounds());
+      const img = new Image(32, 32);
+      img.onload = () => {
+        mapInstance.addImage("toilet-icon", img);
+      };
+      img.src = "/src/assets/toilet.png";
+
+      // const sw = { lng: 139.8564, lat: 35.6122 };
+      // const ne = { lng: 139.9052, lat: 35.6538 };
+
+      // // // 矩形の座標（時計回りで閉じる）
+      // const bounds = [
+      //   [sw.lng, sw.lat],
+      //   [ne.lng, sw.lat],
+      //   [ne.lng, ne.lat],
+      //   [sw.lng, ne.lat],
+      //   [sw.lng, sw.lat],
+      // ];
+
+      // mapInstance.addSource("bounds-box", {
+      //   type: "geojson",
+      //   data: {
+      //     type: "Feature",
+      //     geometry: {
+      //       type: "Polygon",
+      //       coordinates: [bounds],
+      //     },
+      //     properties: {},
+      //   },
+      // });
+
+      // // 赤枠のレイヤー
+      // mapInstance.addLayer({
+      //   id: "bounds-box-line",
+      //   type: "line",
+      //   source: "bounds-box",
+      //   paint: {
+      //     "line-color": "#ff0000",
+      //     "line-width": 2,
+      //     "line-opacity": 0.8,
+      //   },
+      // });
 
       mapInstance.addControl(new maplibregl.NavigationControl());
 

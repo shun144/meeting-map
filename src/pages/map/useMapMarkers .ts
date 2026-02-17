@@ -96,6 +96,7 @@ const useMapMarkers = (repo: DestinationRepository) => {
 
     inputElem.addEventListener("change", (event) => {
       const targetValue = (event.target as HTMLInputElement).value;
+
       const newData = {
         id,
         title: targetValue,
