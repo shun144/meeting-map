@@ -51,7 +51,7 @@ const MeetMap = () => {
         },
         trackUserLocation: true,
         showAccuracyCircle: false,
-        showUserLocation: false,
+        showUserLocation: true,
         fitBoundsOptions: {
           maxZoom: 19,
           linear: true,
@@ -112,6 +112,8 @@ const MeetMap = () => {
       }
 
       geolocateControl.on("geolocate", (event) => {
+        // ジオロケーションコントローラーの状態を取得
+        console.log(geolocateControl._watchState);
         const newPos = new maplibregl.LngLat(
           event.coords.longitude,
           event.coords.latitude,
@@ -128,28 +130,32 @@ const MeetMap = () => {
         currentPos = newPos;
       });
 
-      geolocateControl.on("userlocationfocus", function () {
-        userMarker.setOpacity("1");
-      });
+      // geolocateControl.on("userlocationfocus", function () {
+      //   userMarker.setOpacity("1");
+      // });
 
-      geolocateControl.on("trackuserlocationstart", () => {
-        userMarker.setOpacity("1");
-      });
-      geolocateControl.on("trackuserlocationend", (event) => {
-        userMarker.setOpacity("0");
-      });
+      // geolocateControl.on("trackuserlocationstart", () => {
+      //   userMarker.setOpacity("1");
+      // });
 
-      geolocateControl.on("error", (error) => {
-        console.error("位置情報エラー:", error.code, error.message);
+      // バックグラウンド状態に切り替わった時に発火
+      // アクティブロック状態でユーザがカメラを移動させた時
+      // バックグラウンド状態は位置情報の更新はするがカメラは移動しない
+      // geolocateControl.on("trackuserlocationend", (event) => {
+      //   userMarker.setOpacity("0");
+      // });
 
-        if (error.code === 1) {
-          // 位置情報の許可を求める
-          alert("位置情報の使用を許可してください");
-        } else if (error.code === 3) {
-          // タイムアウト
-          console.log("位置情報の取得がタイムアウトしました");
-        }
-      });
+      // geolocateControl.on("error", (error) => {
+      //   console.error("位置情報エラー:", error.code, error.message);
+
+      //   if (error.code === 1) {
+      //     // 位置情報の許可を求める
+      //     alert("位置情報の使用を許可してください");
+      //   } else if (error.code === 3) {
+      //     // タイムアウト
+      //     console.log("位置情報の取得がタイムアウトしました");
+      //   }
+      // });
 
       const resetTimer = () => {
         clearInterval(timerId.current);
