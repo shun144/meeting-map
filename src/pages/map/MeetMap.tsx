@@ -51,7 +51,7 @@ const MeetMap = () => {
         },
         trackUserLocation: true,
         showAccuracyCircle: false,
-        showUserLocation: true,
+        showUserLocation: false,
         fitBoundsOptions: {
           maxZoom: 19,
           linear: true,
@@ -113,7 +113,7 @@ const MeetMap = () => {
 
       geolocateControl.on("geolocate", (event) => {
         // ジオロケーションコントローラーの状態を取得
-        console.log(geolocateControl._watchState);
+
         const newPos = new maplibregl.LngLat(
           event.coords.longitude,
           event.coords.latitude,
@@ -131,19 +131,22 @@ const MeetMap = () => {
       });
 
       // geolocateControl.on("userlocationfocus", function () {
+      //   console.log("userlocationfocus", geolocateControl._watchState);
       //   userMarker.setOpacity("1");
       // });
 
-      // geolocateControl.on("trackuserlocationstart", () => {
-      //   userMarker.setOpacity("1");
-      // });
+      geolocateControl.on("trackuserlocationstart", () => {
+        userMarker.setOpacity("1");
+      });
 
-      // バックグラウンド状態に切り替わった時に発火
-      // アクティブロック状態でユーザがカメラを移動させた時
-      // バックグラウンド状態は位置情報の更新はするがカメラは移動しない
-      // geolocateControl.on("trackuserlocationend", (event) => {
-      //   userMarker.setOpacity("0");
-      // });
+      // バックグラウンド状態に切り替わった時に発火;
+      // アクティブロック状態でユーザがカメラを移動させた時;
+      // バックグラウンド状態は位置情報の更新はするがカメラは移動しない;
+      geolocateControl.on("trackuserlocationend", (event) => {
+        if (event.target._watchState === "OFF") {
+          userMarker.setOpacity("0");
+        }
+      });
 
       // geolocateControl.on("error", (error) => {
       //   console.error("位置情報エラー:", error.code, error.message);
