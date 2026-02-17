@@ -5,6 +5,10 @@ const PMTILES_SRC =
 
 export const mabashiMapStyle: MapSrcStyle = {
   src: PMTILES_SRC,
+  center: [139.9188144243107, 35.81436357909482],
+  zoom: 18,
+  maxZoom: 20,
+  minZoom: 15,
   style: {
     version: 8,
     sources: {

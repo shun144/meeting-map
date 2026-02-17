@@ -45,6 +45,11 @@ const useMapMarkers = (repo: DestinationRepository) => {
     const inputElem = document.createElement("input");
     inputElem.className = styles.popupInput;
     inputElem.defaultValue = title;
+    inputElem.onkeydown = (event) => {
+      if (event.key === "Enter") {
+        markerElem.togglePopup();
+      }
+    };
 
     // 削除ボタン（ゴミ箱アイコン）
     const deleteButton = document.createElement("button");

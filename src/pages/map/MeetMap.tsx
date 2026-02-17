@@ -43,6 +43,9 @@ const MeetMap = () => {
     mapInstance.on("load", () => {
       setMapState(mapInstance);
 
+      console.log("maxBounds:", mapInstance.getMaxBounds());
+      console.log("現在の表示範囲:", mapInstance.getBounds());
+
       mapInstance.addControl(new maplibregl.NavigationControl());
 
       const geolocateControl = new maplibregl.GeolocateControl({
@@ -111,6 +114,8 @@ const MeetMap = () => {
         animationId = requestAnimationFrame(animate);
       }
 
+      // geolocateControl.on("outofmaxbounds");
+
       geolocateControl.on("geolocate", (event) => {
         // ジオロケーションコントローラーの状態を取得
 
@@ -130,10 +135,9 @@ const MeetMap = () => {
         currentPos = newPos;
       });
 
-      // geolocateControl.on("userlocationfocus", function () {
-      //   console.log("userlocationfocus", geolocateControl._watchState);
-      //   userMarker.setOpacity("1");
-      // });
+      geolocateControl.on("outofmaxbounds", () => {
+        console.log("An outofmaxbounds event has occurred.");
+      });
 
       geolocateControl.on("trackuserlocationstart", () => {
         userMarker.setOpacity("1");
@@ -147,18 +151,6 @@ const MeetMap = () => {
           userMarker.setOpacity("0");
         }
       });
-
-      // geolocateControl.on("error", (error) => {
-      //   console.error("位置情報エラー:", error.code, error.message);
-
-      //   if (error.code === 1) {
-      //     // 位置情報の許可を求める
-      //     alert("位置情報の使用を許可してください");
-      //   } else if (error.code === 3) {
-      //     // タイムアウト
-      //     console.log("位置情報の取得がタイムアウトしました");
-      //   }
-      // });
 
       const resetTimer = () => {
         clearInterval(timerId.current);
