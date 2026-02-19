@@ -7,7 +7,8 @@ export class MapRepository {
     try {
       const { data, error: apiError } = await supabase
         .from("map")
-        .select("id,name");
+        .select("id,name,updated_at")
+        .eq("invalid_flg", false);
 
       if (apiError) {
         throw apiError;

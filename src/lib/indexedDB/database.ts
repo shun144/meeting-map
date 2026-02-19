@@ -20,7 +20,7 @@ function openDataBase(): Promise<IDBDatabase> {
       }
 
       db.createObjectStore(storeNames.MAPS, {
-        keyPath: ["id", "name"],
+        keyPath: ["id", "name", "updated_at"],
       });
 
       db.createObjectStore(storeNames.PMTILES, {

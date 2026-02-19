@@ -1,17 +1,19 @@
 import {
-  precacheAndRoute,
   cleanupOutdatedCaches,
   createHandlerBoundToURL,
+  precacheAndRoute,
 } from "workbox-precaching";
 import { NavigationRoute, registerRoute } from "workbox-routing";
 import {
-  fetchPMTiles,
-  savePMTiles,
   fetchAllDestinations,
-  saveDestinations,
   fetchMaps,
+  fetchPMTiles,
+  saveDestinations,
   saveMaps,
+  savePMTiles,
 } from "./lib/indexedDB/database";
+import { supabase } from "./lib/supabase/supabaseClient";
+
 declare let self: ServiceWorkerGlobalScope;
 
 // 古いバージョンのworkboxで追加されたキャッシュを自動削除する
@@ -52,7 +54,7 @@ self.addEventListener("fetch", (event) => {
   const isMapFetchQuery =
     method === "GET" &&
     url.pathname.includes("/rest/v1/map") &&
-    params.get("select") === "id,name";
+    params.get("select") === "id,name,updated_at";
 
   if (isMapFetchQuery) {
     handleMapsRequest(event);
@@ -83,6 +85,10 @@ function handleMapsRequest(event: FetchEvent) {
     (async () => {
       const cached = await fetchMaps();
 
+      const { data: metas } = await supabase
+        .from("map")
+        .select("id,updated_at");
+
       if (cached.length > 0) {
         const headers = new Headers({
           "Content-Type": "application/json; charset=utf-8",
@@ -106,6 +112,7 @@ function handleMapsRequest(event: FetchEvent) {
           const payloads = (await clonedRes.json()) as {
             id: string;
             name: string;
+            updated_at: string;
           }[];
           saveMaps(payloads);
         })(),

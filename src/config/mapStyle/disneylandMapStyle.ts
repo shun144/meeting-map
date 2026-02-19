@@ -29,6 +29,18 @@ export const disneylandMapStyle: MapSrcStyle = {
           "background-color": "#f0f0f0",
         },
       },
+      // 水域
+      {
+        id: "water",
+        source: "tdl",
+        "source-layer": "disneyland",
+        type: "fill",
+        filter: ["==", "natural", "water"],
+        paint: {
+          "fill-color": "#aad3df",
+          "fill-opacity": 1,
+        },
+      },
 
       // 歩道
       {
@@ -68,15 +80,31 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
-      // 水域
+      // 囲障付き庭園
       {
-        id: "water",
+        id: "garden",
         source: "tdl",
         "source-layer": "disneyland",
         type: "fill",
-        filter: ["==", "natural", "water"],
+        filter: [
+          "all",
+          ["==", "barrier", "fence"],
+          ["==", "leisure", "garden"],
+        ],
         paint: {
-          "fill-color": "#aad3df",
+          "fill-color": "#d4edda",
+        },
+      },
+
+      // 橋
+      {
+        id: "bride",
+        source: "tdl",
+        "source-layer": "disneyland",
+        type: "fill",
+        filter: ["==", "bridge", "yes"],
+        paint: {
+          "fill-color": "#dddde8",
           "fill-opacity": 1,
         },
       },
@@ -112,52 +140,6 @@ export const disneylandMapStyle: MapSrcStyle = {
           "line-width": 1,
         },
       },
-
-      // // 主要道路
-      // {
-      //   id: "roads-main",
-      //   source: "tdl",
-      //   "source-layer": "disneyland",
-      //   type: "line",
-      //   filter: ["in", "highway", "motorway", "trunk", "primary", "secondary"],
-      //   paint: {
-      //     "line-color": "#fcd6a4",
-      //     "line-width": [
-      //       "interpolate",
-      //       ["linear"],
-      //       ["zoom"],
-      //       16,
-      //       2,
-      //       17,
-      //       4,
-      //       19,
-      //       8,
-      //     ],
-      //   },
-      // },
-
-      // // 歩道
-      // {
-      //   id: "roads-footway",
-      //   source: "tdl",
-      //   "source-layer": "disneyland",
-      //   type: "line",
-      //   filter: ["in", "highway", "footway", "path", "pedestrian"],
-      //   paint: {
-      //     "line-color": "#dddde8",
-      //     "line-width": [
-      //       "interpolate",
-      //       ["linear"],
-      //       ["zoom"],
-      //       16,
-      //       0.5,
-      //       17,
-      //       1,
-      //       19,
-      //       3, // 歩道は主要道路より細め
-      //     ],
-      //   },
-      // },
 
       // その他
       {
@@ -196,64 +178,6 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
-      // // 道路ライン
-      // {
-      //   id: "roads",
-      //   source: "tdl",
-      //   "source-layer": "disneyland",
-      //   type: "line",
-      //   filter: ["has", "highway"],
-      //   paint: {
-      //     "line-color": [
-      //       "match",
-      //       ["get", "highway"],
-      //       ["motorway", "trunk"],
-      //       "#e892a2", // 主要道路: ピンク系
-      //       ["primary", "secondary"],
-      //       "#fcd6a4", // 一般道路: 薄オレンジ
-      //       ["footway", "path", "pedestrian"],
-      //       "#dddde8", // 歩道: 薄グレー
-      //       "#ffffff", // その他: 白
-      //     ],
-      //     "line-width": [
-      //       "interpolate",
-      //       ["linear"],
-      //       ["zoom"],
-      //       16,
-      //       0.5,
-      //       17,
-      //       1,
-      //       19,
-      //       6,
-      //     ],
-      //   },
-      // },
-
-      // // アトラクション（目立つ色）
-      // {
-      //   id: "attractions",
-      //   source: "tdl",
-      //   "source-layer": "disneyland",
-      //   type: "fill",
-      //   filter: ["has", "attraction"],
-      //   paint: {
-      //     "fill-color": "#ffebcd",
-      //     "fill-opacity": 0.9,
-      //   },
-      // },
-
-      // {
-      //   id: "attractions-outline",
-      //   source: "tdl",
-      //   "source-layer": "disneyland",
-      //   type: "line",
-      //   filter: ["has", "attraction"],
-      //   paint: {
-      //     "line-color": "#ff9800",
-      //     "line-width": 2,
-      //   },
-      // },
-
       {
         id: "flowerbed",
         source: "tdl",
@@ -276,7 +200,7 @@ export const disneylandMapStyle: MapSrcStyle = {
         minzoom: 16,
         layout: {
           "icon-image": "toilet-icon",
-          "icon-size": 0.5,
+          "icon-size": 0.7,
           "icon-allow-overlap": true,
           "icon-ignore-placement": true,
         },
@@ -289,19 +213,12 @@ export const disneylandMapStyle: MapSrcStyle = {
         "source-layer": "disneyland",
         type: "symbol",
         filter: ["has", "shop"],
-        minzoom: 16,
+        minzoom: 17,
         layout: {
-          "text-field": "🏠",
-          "text-size": 12,
-          "text-allow-overlap": true, // シンボルの重なりを許可
-          "text-ignore-placement": false, // false→別のラベルをよけてラベル表示
-          "symbol-avoid-edges": false, // 画面端でも表示
-        },
-        paint: {
-          "text-color": "#7b1fa2",
-          "text-halo-color": "#ffffff",
-          "text-halo-width": 1,
-          "text-opacity": 0.7,
+          "icon-image": "shop-icon",
+          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.6, 17, 0.5],
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
         },
       },
 
@@ -314,19 +231,13 @@ export const disneylandMapStyle: MapSrcStyle = {
         filter: ["in", "amenity", "restaurant"],
         minzoom: 16,
         layout: {
-          "text-field": "🍴",
-          "text-size": 15,
-          "text-allow-overlap": true, // シンボルの重なりを許可
-          "text-ignore-placement": false, // false→別のラベルをよけてラベル表示
-          "symbol-avoid-edges": false, // 画面端でも表示
-        },
-        paint: {
-          "text-color": "#558b2f", // メインの色（トマトレッド）
-          "text-halo-color": "#ffffff", // 縁取りの色（白）
-          "text-halo-width": 1, // 縁取りの太さ
-          "text-opacity": 0.8, // 不透明度（0-1）
+          "icon-image": "restaurant-icon",
+          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.6, 17, 0.6],
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
         },
       },
+
       // カフェ
       {
         id: "cafe",
@@ -336,17 +247,10 @@ export const disneylandMapStyle: MapSrcStyle = {
         filter: ["in", "amenity", "cafe"],
         minzoom: 16,
         layout: {
-          "text-field": "🍵",
-          "text-size": 14,
-          "text-allow-overlap": true, // シンボルの重なりを許可
-          "text-ignore-placement": false, // false→別のラベルをよけてラベル表示
-          "symbol-avoid-edges": false, // 画面端でも表示
-        },
-        paint: {
-          "text-color": "blue",
-          "text-halo-color": "#ffffff", // 縁取りの色（白）
-          "text-halo-width": 2, // 縁取りの太さ
-          "text-opacity": 0.8, // 不透明度（0-1）
+          "icon-image": "cafe-icon",
+          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.6, 17, 0.6],
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
         },
       },
 
@@ -359,17 +263,10 @@ export const disneylandMapStyle: MapSrcStyle = {
         filter: ["in", "amenity", "fast_food"],
         minzoom: 16,
         layout: {
-          "text-field": "🍔",
-          "text-size": 14,
-          "text-allow-overlap": true, // シンボルの重なりを許可
-          "text-ignore-placement": false, // false→別のラベルをよけてラベル表示
-          "symbol-avoid-edges": false, // 画面端でも表示
-        },
-        paint: {
-          "text-color": "#ff6347",
-          "text-halo-color": "#ffffff", // 縁取りの色（白）
-          "text-halo-width": 2, // 縁取りの太さ
-          "text-opacity": 0.8, // 不透明度（0-1）
+          "icon-image": "fastfood-icon",
+          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.4, 17, 0.5],
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
         },
       },
 
@@ -408,7 +305,42 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
-      // レストラン・ショップ名
+      // ファストフード店名
+      {
+        id: "fastfood-labels",
+        source: "tdl",
+        "source-layer": "disneyland",
+        type: "symbol",
+        filter: ["in", "amenity", "fast_food"],
+        minzoom: 17,
+        layout: {
+          "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
+          "text-font": ["Noto Sans Regular"],
+          "text-size": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            17,
+            12,
+            18,
+            14,
+            19,
+            16,
+            20,
+            18,
+          ],
+          "text-anchor": "top",
+          "text-offset": [0, 1],
+          "text-max-width": 10,
+        },
+        paint: {
+          "text-color": "#d94801",
+          "text-halo-color": "#ffffff",
+          "text-halo-width": 1.5,
+        },
+      },
+
+      // ショップ名
       {
         id: "amenity-labels",
         source: "tdl",
@@ -416,7 +348,7 @@ export const disneylandMapStyle: MapSrcStyle = {
         type: "symbol",
         filter: [
           "any",
-          ["in", "amenity", "restaurant", "cafe", "fast_food"],
+          ["in", "amenity", "restaurant", "cafe"],
           ["has", "shop"],
         ],
         minzoom: 17,
@@ -436,16 +368,86 @@ export const disneylandMapStyle: MapSrcStyle = {
             20,
             18,
           ],
-          "text-anchor": "top", // アイコンの上端を基準に
-          "text-offset": [0, 1], // 下に1em分ずらす
+          "text-anchor": "top",
+          "text-offset": [0, 1],
           "text-max-width": 10,
         },
         paint: {
-          "text-color": "#ff6347",
+          "text-color": "blue",
           "text-halo-color": "#ffffff",
           "text-halo-width": 1.5,
         },
       },
+
+      // レストラン名
+      {
+        id: "restaurant-labels",
+        source: "tdl",
+        "source-layer": "disneyland",
+        type: "symbol",
+        filter: ["in", "amenity", "restaurant"],
+        minzoom: 17,
+        layout: {
+          "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
+          "text-font": ["Noto Sans Regular"],
+          "text-size": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            17,
+            12,
+            18,
+            14,
+            19,
+            16,
+            20,
+            18,
+          ],
+          "text-anchor": "top",
+          "text-offset": [0, 1],
+          "text-max-width": 10,
+        },
+        paint: {
+          "text-color": "#e31a1c",
+          "text-halo-color": "#ffffff",
+          "text-halo-width": 1.5,
+        },
+      },
+
+      // // レストラン名
+      // {
+      //   id: "restaurant-labels",
+      //   source: "tdl",
+      //   "source-layer": "disneyland",
+      //   type: "symbol",
+      //   filter: ["any", ["in", "amenity", "restaurant"], ["has", "shop"]],
+      //   minzoom: 17,
+      //   layout: {
+      //     "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
+      //     "text-font": ["Noto Sans Regular"],
+      //     "text-size": [
+      //       "interpolate",
+      //       ["linear"],
+      //       ["zoom"],
+      //       17,
+      //       12,
+      //       18,
+      //       14,
+      //       19,
+      //       16,
+      //       20,
+      //       18,
+      //     ],
+      //     "text-anchor": "top",
+      //     "text-offset": [0, 1],
+      //     "text-max-width": 10,
+      //   },
+      //   paint: {
+      //     "text-color": "black",
+      //     "text-halo-color": "#ffffff",
+      //     "text-halo-width": 1.5,
+      //   },
+      // },
 
       // その他施設名（小さめ・OSM標準）
       {
