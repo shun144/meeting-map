@@ -3,16 +3,14 @@ import { PMTiles, Protocol } from "pmtiles";
 import { mapStyles } from "@/config/mapStyle";
 
 export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
-  const { src, style, center, zoom, maxZoom, minZoom } = getMapStyle(mapId);
-
-  const sw = { lng: 139.8564, lat: 35.6122 };
-  const ne = { lng: 139.9052, lat: 35.6538 };
-
-  const maxBounds = new maplibregl.LngLatBounds(sw, ne);
+  const { src, style, center, zoom, maxZoom, minZoom, sw, ne } =
+    getMapStyle(mapId);
 
   const protocol = new Protocol();
   maplibregl.addProtocol("pmtiles", protocol.tile);
   const pmtiles = new PMTiles(src);
+
+  const maxBounds = sw && ne ? new maplibregl.LngLatBounds(sw, ne) : undefined;
 
   // pmtiles.getMetadata().then((metadata) => {
   //   console.log(JSON.stringify(metadata, null, 2));
@@ -29,7 +27,6 @@ export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
   const maplibreglMap = new maplibregl.Map({
     container: mapContainerDiv,
     center,
-    // center: [139.88891, 35.630511],
     zoom,
     maxZoom,
     minZoom,

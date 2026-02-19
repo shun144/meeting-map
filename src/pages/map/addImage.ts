@@ -14,8 +14,12 @@ const images: { [key: string]: string } = {
 
 export const addImages = (mapInstance: maplibregl.Map) => {
   for (const [name, src] of Object.entries(images)) {
+    if (mapInstance.hasImage(name)) continue;
     const img = new Image(32, 32);
-    img.onload = () => mapInstance.addImage(name, img);
+    img.onload = () => {
+      if (mapInstance.hasImage(name)) return;
+      mapInstance.addImage(name, img);
+    };
     img.src = src;
   }
 };

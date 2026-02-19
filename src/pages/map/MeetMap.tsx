@@ -154,11 +154,7 @@ const MeetMap = () => {
         animationId = requestAnimationFrame(animate);
       }
 
-      // geolocateControl.on("outofmaxbounds");
-
       geolocateControl.on("geolocate", (event) => {
-        // ジオロケーションコントローラーの状態を取得
-
         const newPos = new maplibregl.LngLat(
           event.coords.longitude,
           event.coords.latitude,

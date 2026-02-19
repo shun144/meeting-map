@@ -7,4 +7,6 @@ export interface MapSrcStyle {
   zoom: number;
   maxZoom: number;
   minZoom: number;
+  sw?: maplibregl.LngLatLike;
+  ne?: maplibregl.LngLatLike;
 }
