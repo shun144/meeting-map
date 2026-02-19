@@ -5,6 +5,7 @@ import { useParams } from "react-router";
 import { createMap } from "./createMap";
 import useMapMarkers from "./useMapMarkers ";
 import { addImages } from "./addImage";
+import process from "process";
 
 // 線形補間
 function lerp(start: number, end: number, t: number): number {
@@ -155,6 +156,12 @@ const MeetMap = () => {
       }
 
       geolocateControl.on("geolocate", (event) => {
+        const heading = event.coords.heading;
+
+        userMarker.setRotation(heading);
+        // if (heading) {
+        //   alert(heading);
+        // }
         const newPos = new maplibregl.LngLat(
           event.coords.longitude,
           event.coords.latitude,
