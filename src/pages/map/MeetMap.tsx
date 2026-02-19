@@ -5,7 +5,6 @@ import { useParams } from "react-router";
 import { createMap } from "./createMap";
 import useMapMarkers from "./useMapMarkers ";
 import { addImages } from "./addImage";
-import process from "process";
 
 // 線形補間
 function lerp(start: number, end: number, t: number): number {
