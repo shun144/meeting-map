@@ -1,11 +1,15 @@
-// const images = [{ src: "/src/assets/toilet.png", name: "toilet-icon" }];
+import toiletIcon from "/src/assets/toilet.png";
+import fastfoodIcon from "/src/assets/fastfood.png";
+import cafeIcon from "/src/assets/cafe.png";
+import restaurantIcon from "/src/assets/restaurant.png";
+import shopIcon from "/src/assets/shop.png";
 
 const images: { [key: string]: string } = {
-  "toilet-icon": "/src/assets/toilet.png",
-  "fastfood-icon": "/src/assets/fastfood.png",
-  "cafe-icon": "/src/assets/cafe.png",
-  "restaurant-icon": "/src/assets/restaurant.png",
-  "shop-icon": "/src/assets/shop.png",
+  "toilet-icon": toiletIcon,
+  "fastfood-icon": fastfoodIcon,
+  "cafe-icon": cafeIcon,
+  "restaurant-icon": restaurantIcon,
+  "shop-icon": shopIcon,
 };
 
 export const addImages = (mapInstance: maplibregl.Map) => {

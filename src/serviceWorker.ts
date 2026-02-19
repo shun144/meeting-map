@@ -85,9 +85,9 @@ function handleMapsRequest(event: FetchEvent) {
     (async () => {
       const cached = await fetchMaps();
 
-      const { data: metas } = await supabase
-        .from("map")
-        .select("id,updated_at");
+      // const { data: metas } = await supabase
+      //   .from("map")
+      //   .select("id,updated_at");
 
       if (cached.length > 0) {
         const headers = new Headers({

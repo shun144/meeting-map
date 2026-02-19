@@ -44,7 +44,6 @@ const MeetMap = () => {
     mapInstance.on("load", () => {
       setMapState(mapInstance);
 
-      addImages(mapInstance);
       // const img = new Image(32, 32);
       // img.onload = () => {
       //   mapInstance.addImage("toilet-icon", img);
@@ -247,6 +246,10 @@ const MeetMap = () => {
         if (isTouch) return;
         resetTimer();
       });
+    });
+
+    mapInstance.on("styledata", () => {
+      addImages(mapInstance);
     });
 
     return () => {
