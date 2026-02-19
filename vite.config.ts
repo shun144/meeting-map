@@ -7,6 +7,9 @@ import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    assetsInlineLimit: 0,
+  },
   plugins: [
     react(),
     paths(),
@@ -67,8 +70,4 @@ export default defineConfig({
       localsConvention: "dashes",
     },
   },
-
-  // server: {
-  //   host: true,
-  // },
 });

@@ -1,8 +1,8 @@
-import toiletIcon from "/src/assets/toilet.png";
-import fastfoodIcon from "/src/assets/fastfood.png";
-import cafeIcon from "/src/assets/cafe.png";
-import restaurantIcon from "/src/assets/restaurant.png";
-import shopIcon from "/src/assets/shop.png";
+import toiletIcon from "@/assets/toilet.png";
+import fastfoodIcon from "@/assets/fastfood.png";
+import cafeIcon from "@/assets/cafe.png";
+import restaurantIcon from "@/assets/restaurant.png";
+import shopIcon from "@/assets/shop.png";
 
 const images: { [key: string]: string } = {
   "toilet-icon": toiletIcon,
