@@ -7,7 +7,7 @@ import useMapMarkers from "./useMapMarkers ";
 import { addImages } from "./addImage";
 import { lerp } from "@/features/map/utils/math";
 import { easeOutQuad } from "@/features/map/utils/animation";
-import { isMarker, smoothMoveUserMarker } from "@/features/map/utils/marker";
+import { isMarker, smoothMove } from "@/features/map/utils/marker";
 
 const MeetMap = () => {
   const { mapId } = useParams();
@@ -117,11 +117,8 @@ const MeetMap = () => {
         }
 
         // smoothMoveUserMarker(currentPos, newPos);
-        smoothMoveUserMarker(
-          animationId,
-          currentPos,
-          newPos,
-          userMarker.setLngLat,
+        smoothMove(animationId, currentPos, newPos, (lnglat) =>
+          userMarker.setLngLat(lnglat),
         );
         currentPos = newPos;
       });

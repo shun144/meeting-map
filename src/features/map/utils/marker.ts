@@ -9,7 +9,7 @@ export function isMarker(
   );
 }
 
-export function smoothMoveUserMarker(
+export function smoothMove(
   animationId: number | null,
   from: maplibregl.LngLat,
   to: maplibregl.LngLat,
