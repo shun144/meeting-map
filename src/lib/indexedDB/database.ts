@@ -78,31 +78,16 @@ export async function restoreMaps(payloads: MapCache[]) {
   });
 }
 
-export async function clearMaps() {
-  const db = await openDataBase();
-  return new Promise<void>((resolve, reject) => {
-    const tx = db.transaction([storeNames.MAPS], "readwrite");
-    const store = tx.objectStore(storeNames.MAPS);
-    const req = store.clear();
-    req.onsuccess = function () {
-      resolve();
-    };
-    req.onerror = function () {
-      reject(this.error);
-    };
-  });
-}
-
 export async function fetchPMTiles(key: IDBValidKey) {
   const db = await openDataBase();
   return new Promise<PmtilesCache>((resolve, reject) => {
-    const tx = db.transaction([storeNames.PMTILES], "readwrite");
+    const tx = db.transaction([storeNames.PMTILES], "readonly");
     const store = tx.objectStore(storeNames.PMTILES);
-    const getRequest = store.get(key);
-    getRequest.onsuccess = function () {
+    const req = store.get(key);
+    req.onsuccess = function () {
       resolve(this.result);
     };
-    getRequest.onerror = function () {
+    req.onerror = function () {
       reject(this.error);
     };
   });
@@ -113,11 +98,11 @@ export async function savePMTiles(payload: PmtilesCache): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction([storeNames.PMTILES], "readwrite");
     const store = tx.objectStore(storeNames.PMTILES);
-    const putRequest = store.put(payload);
-    putRequest.onsuccess = function () {
+    const req = store.put(payload);
+    req.onsuccess = function () {
       resolve();
     };
-    putRequest.onerror = function () {
+    req.onerror = function () {
       reject(this.error);
     };
   });
@@ -126,7 +111,7 @@ export async function savePMTiles(payload: PmtilesCache): Promise<void> {
 export async function fetchAllDestinations(key: IDBValidKey) {
   const db = await openDataBase();
   return new Promise<DestinationCache[]>((resolve, reject) => {
-    const tx = db.transaction([storeNames.DESTINATIONS], "readwrite");
+    const tx = db.transaction([storeNames.DESTINATIONS], "readonly");
     const store = tx.objectStore(storeNames.DESTINATIONS);
     const index = store.index("mapIdIdx");
     const getAllRequest = index.getAll(key);
@@ -141,35 +126,34 @@ export async function fetchAllDestinations(key: IDBValidKey) {
 
 export async function saveDestinations(payloads: DestinationCache[]) {
   const db = await openDataBase();
-  const tx = db.transaction([storeNames.DESTINATIONS], "readwrite");
-  const store = tx.objectStore(storeNames.DESTINATIONS);
 
-  const promises = payloads.map((payload) => {
-    return new Promise<void>((resolve, reject) => {
-      const putRequest = store.put(payload);
-      putRequest.onsuccess = function () {
-        resolve();
-      };
-      putRequest.onerror = function () {
-        reject(this.error);
-      };
-    });
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction([storeNames.DESTINATIONS], "readwrite");
+    const store = tx.objectStore(storeNames.DESTINATIONS);
+
+    payloads.forEach((x) => store.put(x));
+    tx.oncomplete = function () {
+      resolve();
+    };
+    tx.onerror = function () {
+      reject(this.error);
+    };
+    tx.onabort = function () {
+      reject(this.error);
+    };
   });
-
-  return Promise.allSettled(promises);
 }
 
 export async function saveDestination(payload: DestinationCache) {
   const db = await openDataBase();
-  const tx = db.transaction([storeNames.DESTINATIONS], "readwrite");
-  const store = tx.objectStore(storeNames.DESTINATIONS);
-
   return new Promise<void>((resolve, reject) => {
-    const putRequest = store.put(payload);
-    putRequest.onsuccess = function () {
+    const tx = db.transaction([storeNames.DESTINATIONS], "readwrite");
+    const store = tx.objectStore(storeNames.DESTINATIONS);
+    const req = store.put(payload);
+    tx.oncomplete = function () {
       resolve();
     };
-    putRequest.onerror = function () {
+    req.onerror = function () {
       reject(this.error);
     };
   });
@@ -177,16 +161,16 @@ export async function saveDestination(payload: DestinationCache) {
 
 export async function deleteDestination(key: IDBValidKey) {
   const db = await openDataBase();
-  const tx = db.transaction([storeNames.DESTINATIONS], "readwrite");
-  const store = tx.objectStore(storeNames.DESTINATIONS);
 
   return new Promise<void>((resolve, reject) => {
-    const delRequest = store.delete(key);
-    delRequest.onsuccess = function () {
-      resolve();
-    };
-    delRequest.onerror = function () {
+    const tx = db.transaction([storeNames.DESTINATIONS], "readwrite");
+    const store = tx.objectStore(storeNames.DESTINATIONS);
+
+    const req = store.delete(key);
+
+    req.onerror = function () {
       reject(this.error);
     };
+    tx.oncomplete = () => resolve();
   });
 }

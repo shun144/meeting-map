@@ -1,8 +1,6 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { MapRepository } from "@/repositories/map/MapRepository";
 import { NavLink } from "react-router";
-import type { Json } from "@/lib/supabase/schema";
-import { clearMaps } from "@/lib/indexedDB/database";
 
 interface MapDTO {
   id: string;
@@ -26,8 +24,6 @@ const Home = () => {
       }
     })();
   }, []);
-
-  const onClearMap = async () => clearMaps();
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 py-6 sm:py-8 px-3 sm:px-4 lg:px-8">
@@ -53,10 +49,6 @@ const Home = () => {
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-          </div>
-
-          <div>
-            <button onClick={onClearMap}>削除</button>
           </div>
 
           <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800 mb-1 sm:mb-2 px-2">
