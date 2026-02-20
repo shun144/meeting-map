@@ -2,6 +2,7 @@ import React, { memo, useEffect, useMemo, useState } from "react";
 import { MapRepository } from "@/repositories/map/MapRepository";
 import { NavLink } from "react-router";
 import type { Json } from "@/lib/supabase/schema";
+import { clearMaps } from "@/lib/indexedDB/database";
 
 interface MapDTO {
   id: string;
@@ -26,10 +27,11 @@ const Home = () => {
     })();
   }, []);
 
+  const onClearMap = async () => clearMaps();
+
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 py-6 sm:py-8 px-3 sm:px-4 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        {/* ヘッダー */}
         <div className="text-center mb-6 sm:mb-8 lg:mb-12">
           <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg mb-3 sm:mb-4 lg:mb-6">
             <svg
@@ -52,6 +54,11 @@ const Home = () => {
               />
             </svg>
           </div>
+
+          <div>
+            <button onClick={onClearMap}>削除</button>
+          </div>
+
           <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800 mb-1 sm:mb-2 px-2">
             地図テンプレートを選択してください
           </h1>

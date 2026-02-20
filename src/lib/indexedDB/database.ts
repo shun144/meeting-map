@@ -79,6 +79,21 @@ export async function saveMaps(payloads: MapCache[]) {
   return Promise.allSettled(promises);
 }
 
+export async function clearMaps() {
+  const db = await openDataBase();
+  return new Promise<MapCache[]>((resolve, reject) => {
+    const tx = db.transaction([storeNames.MAPS], "readwrite");
+    const store = tx.objectStore(storeNames.MAPS);
+    const req = store.clear();
+    req.onsuccess = function () {
+      // resolve();
+    };
+    req.onerror = function () {
+      reject(this.error);
+    };
+  });
+}
+
 export async function fetchPMTiles(key: IDBValidKey) {
   const db = await openDataBase();
   return new Promise<PmtilesCache>((resolve, reject) => {
