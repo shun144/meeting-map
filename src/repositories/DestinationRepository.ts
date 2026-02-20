@@ -2,7 +2,10 @@ import type { Destination } from "@/domains/Destination";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { toDTO, fromDB } from "./destinationMapper";
 import { type Tables } from "@/lib/supabase/schema";
-import { saveDestination, deleteDestination } from "@/lib/indexedDB/database";
+import {
+  saveDestination as saveCachedDestination,
+  deleteDestination as deleteCachedDestination,
+} from "@/lib/indexedDB/database";
 
 // const DEFAULT_MAP_ID = import.meta.env.VITE_DEFAULT_MAP_ID as string;
 const DEFAULT_MAP_ID = "e7d98183-5ebe-4171-a364-2eb93cc6de97";
@@ -13,7 +16,7 @@ export class DestinationRepository {
     this.#mapId = mapId ?? DEFAULT_MAP_ID;
   }
 
-  async save(destination: Destination): Promise<Destination> {
+  async save(destination: Destination): Promise<void> {
     try {
       const dto = toDTO(destination, this.#mapId);
 
@@ -31,9 +34,13 @@ export class DestinationRepository {
         throw new Error("目的地の保存に失敗しました");
       }
 
-      saveDestination(dto);
+      throw new Error("");
 
-      return fromDB(data as Tables<"destination">);
+      await saveCachedDestination(dto).catch((e) =>
+        console.error("キャッシュへの目的地取得に失敗しました", e),
+      );
+
+      // return fromDB(data as Tables<"destination">);
     } catch (error) {
       if (error instanceof Error) {
         console.error("目的地保存エラー:", error.message);
@@ -42,35 +49,6 @@ export class DestinationRepository {
       throw new Error("予期しないエラーが発生しました");
     }
   }
-
-  // async findById(id: number): Promise<Destination | null> {
-  //   try {
-  //     const { data, error } = await supabase
-  //       .from("destination")
-  //       .select("*")
-  //       .eq("id", id)
-  //       .single();
-
-  //     if (error) {
-  //       if (error.code === "PGRST116") {
-  //         return null;
-  //       }
-  //       throw new Error(`目的地の取得に失敗しました: ${error.message}`);
-  //     }
-
-  //     if (!data) {
-  //       return null;
-  //     }
-
-  //     return fromDB(data as Tables<"destination">);
-  //   } catch (error) {
-  //     if (error instanceof Error) {
-  //       console.error("目的地取得エラー:", error.message);
-  //       throw error;
-  //     }
-  //     throw new Error("予期しないエラーが発生しました");
-  //   }
-  // }
 
   async findAll(): Promise<Destination[]> {
     try {
@@ -108,7 +86,9 @@ export class DestinationRepository {
         throw new Error(`目的地の削除に失敗しました: ${error.message}`);
       }
 
-      deleteDestination([this.#mapId, id]);
+      await deleteCachedDestination([this.#mapId, id]).catch((e) =>
+        console.error("キャッシュの目的地削除に失敗しました:", e),
+      );
     } catch (error) {
       if (error instanceof Error) {
         console.error("目的地削除エラー:", error.message);

@@ -1,6 +1,7 @@
 import Header from "@/pages/Header";
 import { memo, useEffect } from "react";
 import { Outlet } from "react-router";
+import { ToastContainer } from "react-toastify";
 
 const Layout = () => {
   return (
@@ -11,6 +12,7 @@ const Layout = () => {
           <Outlet />
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

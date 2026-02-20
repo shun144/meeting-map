@@ -47,7 +47,7 @@ function openDataBase(): Promise<IDBDatabase> {
 export async function fetchMaps() {
   const db = await openDataBase();
   return new Promise<MapCache[]>((resolve, reject) => {
-    const tx = db.transaction([storeNames.MAPS], "readwrite");
+    const tx = db.transaction([storeNames.MAPS], "readonly");
     const store = tx.objectStore(storeNames.MAPS);
     const getRequest = store.getAll();
     getRequest.onsuccess = function () {

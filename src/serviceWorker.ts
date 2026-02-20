@@ -13,6 +13,7 @@ import {
   savePMTiles,
 } from "./lib/indexedDB/database";
 import { supabase } from "./lib/supabase/supabaseClient";
+import { DestinationCache, MapCache } from "./lib/indexedDB/types";
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -46,8 +47,6 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-const encoder = new TextEncoder();
-
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   const params = url.searchParams;
@@ -58,204 +57,392 @@ self.addEventListener("fetch", (event) => {
     url.pathname.includes("/rest/v1/map") &&
     params.get("select") === "id,name,updated_at";
 
+  // マップ情報の取得
   if (isMapFetchQuery) {
-    handleMapsRequest(event);
+    const response = handleMapsRequest(event);
+    event.respondWith(response);
     return;
   }
 
+  // pmtilesファイルの取得
   const isPMTilesQuery = url.pathname.endsWith(".pmtiles");
-
   if (isPMTilesQuery) {
-    handlePMTilesRequest(event, url);
+    const response = handlePMTilesRequest(event, url);
+    event.respondWith(response);
     return;
   }
 
+  // 目的地情報の取得
   const isDestinationFetchQuery =
     method === "GET" &&
     url.pathname.includes("/rest/v1/destination") &&
     params.get("select") === "*" &&
     params.has("map_id");
-
   if (isDestinationFetchQuery) {
-    handleDestinationRequest(event, params);
+    const response = handleDestinationRequest(event, params);
+    event.respondWith(response);
     return;
   }
 });
 
-function handleMapsRequest(event: FetchEvent) {
-  event.respondWith(
-    (async () => {
-      const cached = await fetchMaps();
-      if (cached.length > 0) {
-        const { data: meta } = await supabase
-          .from("map")
-          .select("id,updated_at")
-          .eq("invalid_flg", false);
+async function handleMapsRequest(event: FetchEvent) {
+  const cached = await fetchMaps().catch(() => [] as MapCache[]);
 
-        const metaString = meta
-          ? meta
-              .map((x) => `${x.id}${x.updated_at}`)
-              .sort()
-              .join()
-          : "";
+  if (cached.length > 0) {
+    const { data: serverMeta } = await supabase
+      .from("map")
+      .select("id,updated_at")
+      .eq("invalid_flg", false);
 
-        const cachedString = cached
+    const serverMetaStr = serverMeta
+      ? serverMeta
           .map((x) => `${x.id}${x.updated_at}`)
           .sort()
-          .join();
+          .join()
+      : "";
 
-        if (metaString === cachedString) {
-          const headers = new Headers({
-            "Content-Type": "application/json; charset=utf-8",
-            "x-cache-source": "indexeddb",
-          });
+    const cachedMetaStr = cached
+      .map((x) => `${x.id}${x.updated_at}`)
+      .sort()
+      .join();
 
-          return new Response(JSON.stringify(cached), {
-            status: 200,
-            headers,
-          });
-        }
-      }
+    if (serverMetaStr === cachedMetaStr) {
+      const headers = new Headers({
+        "Content-Type": "application/json; charset=utf-8",
+        "x-cache-source": "indexeddb",
+      });
 
-      const orgRes = await fetch(event.request);
-      if (!orgRes.ok) return orgRes;
-      const clonedRes = orgRes.clone();
-      event.waitUntil(
-        (async () => {
-          const payloads = (await clonedRes.json()) as {
-            id: string;
-            name: string;
-            updated_at: string;
-          }[];
-          // saveMaps(payloads);
-          restoreMaps(payloads);
-        })(),
-      );
+      return new Response(JSON.stringify(cached), {
+        status: 200,
+        headers,
+      });
+    }
+  }
 
-      return orgRes;
+  const originalRes = await fetch(event.request);
+  if (!originalRes.ok) return originalRes;
+  const clonedRes = originalRes.clone();
+  event.waitUntil(
+    (async () => {
+      const payloads = (await clonedRes.json()) as MapCache[];
+      await restoreMaps(payloads).catch((error) => console.error(error));
     })(),
   );
+  return originalRes;
 }
 
-function handlePMTilesRequest(event: FetchEvent, url: URL) {
+async function handlePMTilesRequest(event: FetchEvent, url: URL) {
   const regex = /(?<version>version\d+)\/(?<area>[^\/]+)\.pmtiles$/;
   const matchGroups = url.pathname?.match(regex)?.groups;
-
-  if (!matchGroups) return;
-
+  if (!matchGroups) {
+    return new Response(
+      "PMTilesのURLフォーマットが不正です。期待するパス形式: version{数字}/{エリア名}.pmtiles",
+      {
+        status: 400,
+      },
+    );
+  }
   const { area, version } = matchGroups;
+  const resDB = await fetchPMTiles([area, version]).catch(() => null);
+  if (resDB && resDB.pmtiles) {
+    // キャッシュヒットの場合、indexedDBに保持しているpmtilesを
+    // range取得している
+    const rangeHeader = event.request.headers.get("Range");
 
-  event.respondWith(
-    (async () => {
-      const resDB = await fetchPMTiles([area, version]);
+    if (rangeHeader) {
+      const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+      if (match) {
+        // 206 Partial Contentで返却
+        const start = parseInt(match[1], 10);
+        const end = match[2]
+          ? parseInt(match[2], 10)
+          : resDB.pmtiles.byteLength - 1;
 
-      if (resDB && resDB.pmtiles) {
-        // キャッシュヒット
-        const rangeHeader = event.request.headers.get("Range");
-
-        if (rangeHeader) {
-          const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
-          if (match) {
-            const start = parseInt(match[1], 10);
-            const end = match[2]
-              ? parseInt(match[2], 10)
-              : resDB.pmtiles.byteLength - 1;
-
-            const slicedBuffer = resDB.pmtiles.slice(start, end + 1);
-
-            const response = new Response(slicedBuffer, {
-              status: 206,
-              headers: {
-                "content-type": "binary/octet-stream",
-                "Content-Length": `${slicedBuffer.byteLength}`,
-                "Content-Range": `bytes ${start}-${end}/${resDB.pmtiles.byteLength}`,
-                "Accept-Ranges": "bytes",
-              },
-            });
-            return response;
-          }
-        }
-
-        return new Response(resDB.pmtiles, {
-          status: 200,
+        const slicedBuffer = resDB.pmtiles.slice(start, end + 1);
+        const partialRes = new Response(slicedBuffer, {
+          status: 206,
           headers: {
             "Content-Type": "binary/octet-stream",
-            "Content-Length": `${resDB.pmtiles.byteLength}`,
+            "Content-Length": `${slicedBuffer.byteLength}`,
+            "Content-Range": `bytes ${start}-${end}/${resDB.pmtiles.byteLength}`,
             "Accept-Ranges": "bytes",
           },
         });
+        return partialRes;
       }
+    }
 
-      // キャッシュミス
-      const orgRes = await fetch(event.request);
-      if (!orgRes.ok) return orgRes;
+    // rangeヘッダーにbytesの指定が無い場合、全量のpmtilesを返却
+    return new Response(resDB.pmtiles, {
+      status: 200,
+      headers: {
+        "Content-Type": "binary/octet-stream",
+        "Content-Length": `${resDB.pmtiles.byteLength}`,
+        "Accept-Ranges": "bytes",
+      },
+    });
+  }
 
-      // indexedDBにpmtiles全量を保存
-      event.waitUntil(
-        (async () => {
-          const fullRange = await fetch(url.href);
-          const pmtiles = await fullRange.arrayBuffer();
-          await savePMTiles({ area, version, pmtiles });
-        })(),
+  // キャッシュミス
+  const orgRes = await fetch(event.request);
+  if (!orgRes.ok) return orgRes;
+
+  // indexedDBにpmtiles全量を保存
+  event.waitUntil(
+    (async () => {
+      // rangeヘッダーを使わず素のfetchでpmtilesファイル（全量）を取得
+      const fullRange = await fetch(url.href);
+      const pmtiles = await fullRange.arrayBuffer();
+      await savePMTiles({ area, version, pmtiles }).catch((error) =>
+        console.error(error),
       );
-
-      return orgRes;
     })(),
   );
+
+  return orgRes;
 }
 
-function handleDestinationRequest(event: FetchEvent, params: URLSearchParams) {
+async function handleDestinationRequest(
+  event: FetchEvent,
+  params: URLSearchParams,
+) {
   const regex = /eq\.(?<map_id>.*$)/;
   const matchGroups = params.get("map_id")?.match(regex)?.groups;
 
-  if (!matchGroups) return;
+  if (!matchGroups) {
+    return new Response("目的地取得URLのフォーマットが不正です", {
+      status: 400,
+    });
+  }
+
   const { map_id } = matchGroups;
 
-  event.respondWith(
+  const cached = await fetchAllDestinations(map_id).catch(
+    () => [] as DestinationCache[],
+  );
+
+  if (cached.length > 0) {
+    const headers = new Headers({
+      "Content-Type": "application/json; charset=utf-8",
+      "x-cache-source": "indexeddb",
+    });
+    const response = new Response(JSON.stringify(cached), {
+      status: 200,
+      headers,
+    });
+    return response;
+  }
+
+  const orgRes = await fetch(event.request);
+  if (!orgRes.ok) return orgRes;
+
+  const clonedRes = orgRes.clone();
+  event.waitUntil(
     (async () => {
-      const cached = await fetchAllDestinations(map_id);
+      const destinations = (await clonedRes.json()) as Omit<
+        DestinationCache,
+        "map_id"
+      >[];
 
-      if (cached.length > 0) {
-        const headers = new Headers({
-          "Content-Type": "application/json; charset=utf-8",
-          "x-cache-source": "indexeddb",
-        });
+      const payloads = destinations.map((x) => ({
+        map_id,
+        ...x,
+      }));
 
-        const response = new Response(JSON.stringify(cached), {
-          status: 200,
-          headers,
-        });
-        return response;
-      }
-
-      const orgRes = await fetch(event.request);
-      if (!orgRes.ok) return orgRes;
-
-      const clonedRes = orgRes.clone();
-      event.waitUntil(
-        (async () => {
-          const destinations = (await clonedRes.json()) as {
-            id: number;
-            title: string;
-            lat: number;
-            lng: number;
-          }[];
-
-          const payloads = destinations.map(({ id, title, lat, lng }) => ({
-            map_id,
-            id,
-            title,
-            lat,
-            lng,
-          }));
-
-          saveDestinations(payloads);
-        })(),
-      );
-
-      return orgRes;
+      await saveDestinations(payloads).catch((error) => console.error(error));
     })(),
   );
 
-  return;
+  return orgRes;
 }
+
+// function handleMapsRequest(event: FetchEvent) {
+//   event.respondWith(
+//     (async () => {
+//       const cached = await fetchMaps().catch(() => [] as MapCache[]);
+
+//       if (cached.length > 0) {
+//         const { data: serverMeta } = await supabase
+//           .from("map")
+//           .select("id,updated_at")
+//           .eq("invalid_flg", false);
+
+//         const serverMetaStr = serverMeta
+//           ? serverMeta
+//               .map((x) => `${x.id}${x.updated_at}`)
+//               .sort()
+//               .join()
+//           : "";
+
+//         const cachedMetaStr = cached
+//           .map((x) => `${x.id}${x.updated_at}`)
+//           .sort()
+//           .join();
+
+//         if (serverMetaStr === cachedMetaStr) {
+//           const headers = new Headers({
+//             "Content-Type": "application/json; charset=utf-8",
+//             "x-cache-source": "indexeddb",
+//           });
+
+//           return new Response(JSON.stringify(cached), {
+//             status: 200,
+//             headers,
+//           });
+//         }
+//       }
+
+//       const originalRes = await fetch(event.request);
+//       if (!originalRes.ok) return originalRes;
+//       const clonedRes = originalRes.clone();
+//       event.waitUntil(
+//         (async () => {
+//           const payloads = (await clonedRes.json()) as MapCache[];
+//           await restoreMaps(payloads).catch((error) => console.error(error));
+//         })(),
+//       );
+//       return originalRes;
+//     })(),
+//   );
+// }
+
+// function handlePMTilesRequest(event: FetchEvent, url: URL) {
+//   const regex = /(?<version>version\d+)\/(?<area>[^\/]+)\.pmtiles$/;
+//   const matchGroups = url.pathname?.match(regex)?.groups;
+//   if (!matchGroups) {
+//     event.respondWith(
+//       new Response(
+//         "PMTilesのURLフォーマットが不正です。期待するパス形式: version{数字}/{エリア名}.pmtiles",
+//         {
+//           status: 400,
+//         },
+//       ),
+//     );
+//     return;
+//   }
+
+//   const { area, version } = matchGroups;
+
+//   event.respondWith(
+//     (async () => {
+//       const resDB = await fetchPMTiles([area, version]).catch(() => null);
+
+//       if (resDB && resDB.pmtiles) {
+//         // キャッシュヒットの場合、indexedDBに保持しているpmtilesを
+//         // range取得している
+//         const rangeHeader = event.request.headers.get("Range");
+
+//         if (rangeHeader) {
+//           const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+//           if (match) {
+//             // 206 Partial Contentで返却
+//             const start = parseInt(match[1], 10);
+//             const end = match[2]
+//               ? parseInt(match[2], 10)
+//               : resDB.pmtiles.byteLength - 1;
+
+//             const slicedBuffer = resDB.pmtiles.slice(start, end + 1);
+//             const partialRes = new Response(slicedBuffer, {
+//               status: 206,
+//               headers: {
+//                 "Content-Type": "binary/octet-stream",
+//                 "Content-Length": `${slicedBuffer.byteLength}`,
+//                 "Content-Range": `bytes ${start}-${end}/${resDB.pmtiles.byteLength}`,
+//                 "Accept-Ranges": "bytes",
+//               },
+//             });
+//             return partialRes;
+//           }
+//         }
+
+//         // rangeヘッダーにbytesの指定が無い場合、全量のpmtilesを返却
+//         return new Response(resDB.pmtiles, {
+//           status: 200,
+//           headers: {
+//             "Content-Type": "binary/octet-stream",
+//             "Content-Length": `${resDB.pmtiles.byteLength}`,
+//             "Accept-Ranges": "bytes",
+//           },
+//         });
+//       }
+
+//       // キャッシュミス
+//       const orgRes = await fetch(event.request);
+//       if (!orgRes.ok) return orgRes;
+
+//       // indexedDBにpmtiles全量を保存
+//       event.waitUntil(
+//         (async () => {
+//           // rangeヘッダーを使わず素のfetchでpmtilesファイル（全量）を取得
+//           const fullRange = await fetch(url.href);
+//           const pmtiles = await fullRange.arrayBuffer();
+//           await savePMTiles({ area, version, pmtiles }).catch((error) =>
+//             console.error(error),
+//           );
+//         })(),
+//       );
+
+//       return orgRes;
+//     })(),
+//   );
+// }
+
+// function handleDestinationRequest(event: FetchEvent, params: URLSearchParams) {
+//   const regex = /eq\.(?<map_id>.*$)/;
+//   const matchGroups = params.get("map_id")?.match(regex)?.groups;
+
+//   if (!matchGroups) {
+//     event.respondWith(
+//       new Response("目的地取得URLのフォーマットが不正です", {
+//         status: 400,
+//       }),
+//     );
+//     return;
+//   }
+
+//   const { map_id } = matchGroups;
+
+//   event.respondWith(
+//     (async () => {
+//       const cached = await fetchAllDestinations(map_id).catch(
+//         () => [] as DestinationCache[],
+//       );
+
+//       if (cached.length > 0) {
+//         const headers = new Headers({
+//           "Content-Type": "application/json; charset=utf-8",
+//           "x-cache-source": "indexeddb",
+//         });
+//         const response = new Response(JSON.stringify(cached), {
+//           status: 200,
+//           headers,
+//         });
+//         return response;
+//       }
+
+//       const orgRes = await fetch(event.request);
+//       if (!orgRes.ok) return orgRes;
+
+//       const clonedRes = orgRes.clone();
+//       event.waitUntil(
+//         (async () => {
+//           const destinations = (await clonedRes.json()) as Omit<
+//             DestinationCache,
+//             "map_id"
+//           >[];
+
+//           const payloads = destinations.map((x) => ({
+//             map_id,
+//             ...x,
+//           }));
+
+//           await saveDestinations(payloads).catch((error) =>
+//             console.error(error),
+//           );
+//         })(),
+//       );
+
+//       return orgRes;
+//     })(),
+//   );
+// }

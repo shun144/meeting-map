@@ -3,6 +3,7 @@ import maplibregl from "maplibre-gl";
 import styles from "./marker.module.css";
 import type { DestinationRepository } from "@/repositories/DestinationRepository";
 import { Destination } from "@/domains/Destination";
+import { toast } from "react-toastify";
 
 interface MarkerWithId {
   id: number;
@@ -95,16 +96,24 @@ const useMapMarkers = (repo: DestinationRepository) => {
     });
 
     inputElem.addEventListener("change", (event) => {
-      const targetValue = (event.target as HTMLInputElement).value;
+      const newTitle = (event.target as HTMLInputElement).value;
 
-      const newData = {
+      const newMarkerData = {
         id,
-        title: targetValue,
+        title: newTitle,
         marker: markerElem,
       };
-      setMarkers((prev) => prev.map((x) => (x.id === id ? newData : x)));
-      const data = new Destination(id, latlng, targetValue);
-      repo.save(data);
+      setMarkers((prev) => prev.map((x) => (x.id === id ? newMarkerData : x)));
+      const newDestination = new Destination(id, latlng, newTitle);
+      repo.save(newDestination).catch(() => {
+        toast.error("保存に失敗しました。再度お試しください。", {
+          position: "bottom-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      });
     });
 
     markerInputsRef.current.set(id, inputElem);
