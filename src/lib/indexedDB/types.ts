@@ -1,6 +1,7 @@
 export interface MapCache {
   id: string;
   name: string;
+  updated_at: string;
 }
 
 export interface PmtilesCache {

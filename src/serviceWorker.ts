@@ -46,6 +46,8 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+const encoder = new TextEncoder();
+
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   const params = url.searchParams;
@@ -84,29 +86,39 @@ function handleMapsRequest(event: FetchEvent) {
   event.respondWith(
     (async () => {
       const cached = await fetchMaps();
-
-      // const { data: metas } = await supabase
-      //   .from("map")
-      //   .select("id,updated_at");
-
       if (cached.length > 0) {
-        const headers = new Headers({
-          "Content-Type": "application/json; charset=utf-8",
-          "x-cache-source": "indexeddb",
-        });
+        const { data: meta } = await supabase
+          .from("map")
+          .select("id,updated_at");
 
-        return new Response(JSON.stringify(cached), {
-          status: 200,
-          headers,
-        });
+        const metaString = meta
+          ? meta
+              .map((x) => `${x.id}${x.updated_at}`)
+              .sort()
+              .join()
+          : "";
+
+        const cachedString = cached
+          .map((x) => `${x.id}${x.updated_at}`)
+          .sort()
+          .join();
+
+        if (metaString === cachedString) {
+          const headers = new Headers({
+            "Content-Type": "application/json; charset=utf-8",
+            "x-cache-source": "indexeddb",
+          });
+
+          return new Response(JSON.stringify(cached), {
+            status: 200,
+            headers,
+          });
+        }
       }
 
       const orgRes = await fetch(event.request);
-
       if (!orgRes.ok) return orgRes;
-
       const clonedRes = orgRes.clone();
-
       event.waitUntil(
         (async () => {
           const payloads = (await clonedRes.json()) as {
