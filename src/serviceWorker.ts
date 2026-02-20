@@ -8,8 +8,8 @@ import {
   fetchAllDestinations,
   fetchMaps,
   fetchPMTiles,
+  restoreMaps,
   saveDestinations,
-  saveMaps,
   savePMTiles,
 } from "./lib/indexedDB/database";
 import { supabase } from "./lib/supabase/supabaseClient";
@@ -89,7 +89,8 @@ function handleMapsRequest(event: FetchEvent) {
       if (cached.length > 0) {
         const { data: meta } = await supabase
           .from("map")
-          .select("id,updated_at");
+          .select("id,updated_at")
+          .eq("invalid_flg", false);
 
         const metaString = meta
           ? meta
@@ -126,7 +127,8 @@ function handleMapsRequest(event: FetchEvent) {
             name: string;
             updated_at: string;
           }[];
-          saveMaps(payloads);
+          // saveMaps(payloads);
+          restoreMaps(payloads);
         })(),
       );
 

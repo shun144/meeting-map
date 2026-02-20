@@ -59,34 +59,33 @@ export async function fetchMaps() {
   });
 }
 
-export async function saveMaps(payloads: MapCache[]) {
+export async function restoreMaps(payloads: MapCache[]) {
   const db = await openDataBase();
-  const tx = db.transaction([storeNames.MAPS], "readwrite");
-  const store = tx.objectStore(storeNames.MAPS);
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction([storeNames.MAPS], "readwrite");
+    const store = tx.objectStore(storeNames.MAPS);
 
-  const promises = payloads.map((payload) => {
-    return new Promise<void>((resolve, reject) => {
-      const putRequest = store.put(payload);
-      putRequest.onsuccess = function () {
-        resolve();
-      };
-      putRequest.onerror = function () {
-        reject(this.error);
-      };
-    });
+    store.clear();
+    payloads.forEach((x) => store.put(x));
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = function () {
+      reject(this.error);
+    };
+    tx.onabort = function () {
+      reject(this.error);
+    };
   });
-
-  return Promise.allSettled(promises);
 }
 
 export async function clearMaps() {
   const db = await openDataBase();
-  return new Promise<MapCache[]>((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const tx = db.transaction([storeNames.MAPS], "readwrite");
     const store = tx.objectStore(storeNames.MAPS);
     const req = store.clear();
     req.onsuccess = function () {
-      // resolve();
+      resolve();
     };
     req.onerror = function () {
       reject(this.error);
