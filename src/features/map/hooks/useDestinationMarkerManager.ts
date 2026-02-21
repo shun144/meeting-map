@@ -46,9 +46,27 @@ const useDestinationMarkerManager = (repo: DestinationRepository) => {
       const inputElem = document.createElement("input");
       inputElem.className = styles.popupInput;
       inputElem.defaultValue = title;
+      inputElem.maxLength = 30;
       inputElem.onkeydown = (event) => {
         if (event.key === "Enter") marker.togglePopup();
       };
+
+      inputElem.addEventListener("change", (event) => {
+        const newTitle = (event.target as HTMLInputElement).value;
+
+        const newMarkerData = {
+          id,
+          title: newTitle,
+          marker: marker,
+        };
+        setMarkers((prev) =>
+          prev.map((x) => (x.id === id ? newMarkerData : x)),
+        );
+        const newDestination = new Destination(id, latlng, newTitle);
+        repo
+          .save(newDestination)
+          .catch(() => toast.error("目的地の保存に失敗しました"));
+      });
 
       // 削除ボタン
       const deleteButton = document.createElement("button");
@@ -81,23 +99,6 @@ const useDestinationMarkerManager = (repo: DestinationRepository) => {
         closeButton: false,
       });
 
-      inputElem.addEventListener("change", (event) => {
-        const newTitle = (event.target as HTMLInputElement).value;
-
-        const newMarkerData = {
-          id,
-          title: newTitle,
-          marker: marker,
-        };
-        setMarkers((prev) =>
-          prev.map((x) => (x.id === id ? newMarkerData : x)),
-        );
-        const newDestination = new Destination(id, latlng, newTitle);
-        repo
-          .save(newDestination)
-          .catch(() => toast.error("目的地の保存に失敗しました"));
-      });
-
       popupElem.setDOMContent(popupContainer);
       marker.setPopup(popupElem);
       marker.addTo(map);
@@ -114,7 +115,7 @@ const useDestinationMarkerManager = (repo: DestinationRepository) => {
     });
   };
 
-  return { createMarker, cleanup };
+  return { markers, createMarker, cleanup };
 };
 
 export default useDestinationMarkerManager;

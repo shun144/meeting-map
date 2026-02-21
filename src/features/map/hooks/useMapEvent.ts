@@ -71,19 +71,7 @@ const useMapEvent = (
         currentPos = newPos;
       });
 
-      // geolocateControl.on("trackuserlocationend", (event) => {
-      //   console.log("trackuserlocationend", event.target._watchState);
-      // });
-
-      // geolocateControl.on("userlocationfocus", (event) => {
-      //   console.log("userlocationfocus", event.target._watchState);
-      // });
-      // geolocateControl.on("userlocationlostfocus", (event) => {
-      //   console.log("userlocationlostfocus", event.target._watchState);
-      // });
-
-      geolocateControl.on("trackuserlocationstart", (event) => {
-        // console.log("trackuserlocationstart", event.target._watchState);
+      geolocateControl.on("trackuserlocationstart", () => {
         userMarker.setOpacity("1");
       });
 
@@ -102,6 +90,16 @@ const useMapEvent = (
         timer.current = 0;
       };
 
+      const createDestMarker = (
+        event: maplibregl.MapTouchEvent | maplibregl.MapMouseEvent,
+      ) => {
+        if (timer.current >= 1 && !isMarker(event)) {
+          const addedMarker = createMarker(mapInstance, 0, event.lngLat, "");
+          setTimeout(() => addedMarker?.togglePopup(), 0);
+        }
+        resetTimer();
+      };
+
       let isTouch = false;
       mapInstance.on("touchstart", () => {
         isTouch = true;
@@ -113,20 +111,16 @@ const useMapEvent = (
       });
 
       mapInstance.on("touchend", (event) => {
-        if (timer.current >= 1 && !isMarker(event)) {
-          const addedMarker = createMarker(mapInstance, 0, event.lngLat, "");
-          setTimeout(() => addedMarker?.togglePopup(), 0);
-        }
-        resetTimer();
+        createDestMarker(event);
+        // if (timer.current >= 1 && !isMarker(event)) {
+        //   const addedMarker = createMarker(mapInstance, 0, event.lngLat, "");
+        //   setTimeout(() => addedMarker?.togglePopup(), 0);
+        // }
+        // resetTimer();
       });
 
-      mapInstance.on("touchmove", () => {
-        resetTimer();
-      });
-
-      mapInstance.on("touchcancel", () => {
-        resetTimer();
-      });
+      mapInstance.on("touchmove", () => resetTimer());
+      mapInstance.on("touchcancel", () => resetTimer());
 
       mapInstance.on("mousedown", () => {
         if (isTouch) return;
@@ -134,16 +128,18 @@ const useMapEvent = (
           resetTimer();
           return;
         }
-        timerId.current = setInterval(() => (timer.current += 1), 150);
+        timerId.current = setInterval(() => (timer.current += 1), 300);
       });
 
       mapInstance.on("mouseup", (event) => {
         if (isTouch) return;
-        if (timer.current >= 1 && !isMarker(event)) {
-          const addedMarker = createMarker(mapInstance, 0, event.lngLat, "");
-          setTimeout(() => addedMarker?.togglePopup(), 0);
-        }
-        resetTimer();
+
+        createDestMarker(event);
+        // if (timer.current >= 1 && !isMarker(event)) {
+        //   const addedMarker = createMarker(mapInstance, 0, event.lngLat, "");
+        //   setTimeout(() => addedMarker?.togglePopup(), 0);
+        // }
+        // resetTimer();
       });
 
       mapInstance.on("movestart", () => {

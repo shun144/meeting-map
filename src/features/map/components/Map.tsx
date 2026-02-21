@@ -23,13 +23,18 @@ interface Props {
 const BaseMap = ({ mapId, repo }: Props) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
-  const { createMarker, cleanup } = useDestinationMarkerManager(repo);
+  const { markers, createMarker, cleanup } = useDestinationMarkerManager(repo);
   const { mapState } = useMapEvent(
     mapContainerRef,
     mapId,
     createMarker,
     cleanup,
   );
+
+  useEffect(() => {
+    console.log(markers.length);
+    console.log(markers.map((x) => x.id).join(" "));
+  }, [markers]);
 
   useEffect(() => {
     if (!mapState) return;
