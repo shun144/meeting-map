@@ -42,7 +42,7 @@ const useMapEvent = (
         fitBoundsOptions: {
           maxZoom: 19,
           linear: true,
-          duration: 0,
+          duration: 600,
         },
       });
       mapInstance.addControl(geolocateControl);
@@ -72,13 +72,22 @@ const useMapEvent = (
         currentPos = newPos;
       });
 
-      geolocateControl.on("outofmaxbounds", () => {
-        console.log("An outofmaxbounds event has occurred.");
-      });
+      // geolocateControl.on("outofmaxbounds", () => {
+      //   console.log("An outofmaxbounds event has occurred.");
+      // });
 
-      geolocateControl.on("trackuserlocationstart", () => {
-        userMarker.setOpacity("1");
-      });
+      // geolocateControl.on("trackuserlocationstart", (event) => {
+      //   console.log("trackuserlocationstart", event.target._watchState);
+      //   userMarker.setOpacity("1");
+      // });
+
+      // geolocateControl.on("userlocationlostfocus", function (event) {
+      //   console.log("An userlocationlostfocus event has occurred.");
+      // });
+
+      // geolocateControl.on("userlocationfocus", function (event) {
+      //   console.log("An userlocationfocus event has occurred.");
+      // });
 
       // バックグラウンド状態に切り替わった時に発火;
       // アクティブロック状態でユーザがカメラを移動させた時;

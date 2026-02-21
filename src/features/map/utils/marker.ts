@@ -15,15 +15,15 @@ export function easeOutQuad(t: number): number {
 }
 
 export function smoothMove(
-  animationId: number | null,
+  preAnimationId: number | null,
   from: maplibregl.LngLat,
   to: maplibregl.LngLat,
   duration: number,
   onUpdate: (lnglat: maplibregl.LngLatLike) => void,
 ) {
   // 前のアニメーションがあればキャンセル
-  if (animationId) {
-    cancelAnimationFrame(animationId);
+  if (preAnimationId) {
+    cancelAnimationFrame(preAnimationId);
   }
 
   const startTime = performance.now(); // アニメーション開始時刻（ミリ秒）
