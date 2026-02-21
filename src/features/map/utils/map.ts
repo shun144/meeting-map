@@ -1,6 +1,7 @@
 import maplibregl from "maplibre-gl";
 import { PMTiles, Protocol } from "pmtiles";
 import { mapStyles } from "@/config/mapStyle";
+import { toilet, fastfood, cafe, restaurant, shop } from "@/assets/icon";
 
 export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
   const { src, style, center, zoom, maxZoom, minZoom, sw, ne } =
@@ -31,14 +32,6 @@ export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
 const getMapStyle = (mapId: string) => {
   return mapStyles[mapId];
 };
-
-import { toilet, fastfood, cafe, restaurant, shop } from "@/assets/icon";
-
-// import toiletIcon from "@/assets/toilet.png";
-// import fastfoodIcon from "@/assets/fastfood.png";
-// import cafeIcon from "@/assets/cafe.png";
-// import restaurantIcon from "@/assets/restaurant.png";
-// import shopIcon from "@/assets/shop.png";
 
 const images: { [key: string]: string } = {
   "toilet-icon": toilet,

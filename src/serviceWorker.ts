@@ -89,10 +89,23 @@ async function handleMapsRequest(event: FetchEvent) {
   const cached = await fetchMaps().catch(() => [] as MapCache[]);
 
   if (cached.length > 0) {
-    const { data: serverMeta } = await supabase
+    const headers = new Headers({
+      "Content-Type": "application/json; charset=utf-8",
+      "x-cache-source": "indexeddb",
+    });
+
+    const { data: serverMeta, error } = await supabase
       .from("map")
       .select("id,updated_at")
       .eq("invalid_flg", false);
+
+    if (error) {
+      // fetchエラーの場合キャッシュを返す
+      return new Response(JSON.stringify(cached), {
+        status: 200,
+        headers,
+      });
+    }
 
     const serverMetaStr = serverMeta
       ? serverMeta
@@ -106,12 +119,9 @@ async function handleMapsRequest(event: FetchEvent) {
       .sort()
       .join();
 
+    // キャッシュとsupabaseの保持情報が同じ場合キャッシュを返す
+    // 比較はidとupdated_atで行う
     if (serverMetaStr === cachedMetaStr) {
-      const headers = new Headers({
-        "Content-Type": "application/json; charset=utf-8",
-        "x-cache-source": "indexeddb",
-      });
-
       return new Response(JSON.stringify(cached), {
         status: 200,
         headers,
@@ -162,7 +172,7 @@ async function handlePMTilesRequest(event: FetchEvent, url: URL) {
         const partialRes = new Response(slicedBuffer, {
           status: 206,
           headers: {
-            "Content-Type": "binary/octet-stream",
+            "Content-Type": "application/octet-stream",
             "Content-Length": `${slicedBuffer.byteLength}`,
             "Content-Range": `bytes ${start}-${end}/${resDB.pmtiles.byteLength}`,
             "Accept-Ranges": "bytes",
@@ -176,7 +186,7 @@ async function handlePMTilesRequest(event: FetchEvent, url: URL) {
     return new Response(resDB.pmtiles, {
       status: 200,
       headers: {
-        "Content-Type": "binary/octet-stream",
+        "Content-Type": "application/octet-stream",
         "Content-Length": `${resDB.pmtiles.byteLength}`,
         "Accept-Ranges": "bytes",
       },
