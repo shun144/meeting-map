@@ -25,7 +25,7 @@ const useMapEvent = (
     let currentPos: maplibregl.LngLat | null = null;
     let animationId: number | null = null;
 
-    const userMarker = new maplibregl.Marker({ color: "red", opacity: "0" });
+    // const userMarker = new maplibregl.Marker({ color: "red", opacity: "0" });
 
     mapInstance.on("load", () => {
       setMapState(mapInstance);
@@ -33,18 +33,22 @@ const useMapEvent = (
       mapInstance.addControl(new maplibregl.NavigationControl());
 
       const geolocateControl = new maplibregl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true,
-        },
         trackUserLocation: true,
-        showAccuracyCircle: false,
         showUserLocation: true,
-        fitBoundsOptions: {
-          maxZoom: 19,
-          linear: true,
-          duration: 600,
-        },
       });
+      // const geolocateControl = new maplibregl.GeolocateControl({
+      //   positionOptions: {
+      //     enableHighAccuracy: true,
+      //   },
+      //   trackUserLocation: true,
+      //   showAccuracyCircle: false,
+      //   showUserLocation: true,
+      //   fitBoundsOptions: {
+      //     maxZoom: 19,
+      //     linear: true,
+      //     duration: 600,
+      //   },
+      // });
       mapInstance.addControl(geolocateControl);
 
       // geolocateControl.on("geolocate", (event) => {
@@ -158,9 +162,9 @@ const useMapEvent = (
         cancelAnimationFrame(animationId);
       }
 
-      if (userMarker) {
-        userMarker.remove();
-      }
+      // if (userMarker) {
+      //   userMarker.remove();
+      // }
 
       if (mapInstance) {
         mapInstance.remove();
