@@ -1,6 +1,6 @@
 import { type Tables } from "@/lib/supabase/schema";
 import { supabase } from "./supabaseClient";
-import { Destination } from "@/domains/Destination";
+import { Destination } from "@/features/map/domains/Destination";
 
 const DEFAULT_MAP_ID = import.meta.env.VITE_DEFAULT_MAP_ID as string;
 

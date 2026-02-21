@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import maplibregl from "maplibre-gl";
 import { fetchAllDestination } from "@/lib/supabase/supabaseFunction";
-import type { Destination } from "@/domains/Destination";
+import type { Destination } from "@/features/map/domains/Destination";
 import type { Json } from "@/lib/supabase/schema";
 
 interface Store {

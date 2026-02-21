@@ -1,14 +1,14 @@
-import type { Destination } from "@/domains/Destination";
-import { Destination as DestinationClass } from "@/domains/Destination";
+import type { Destination } from "@/features/map/domains/Destination";
+import { Destination as DestinationClass } from "@/features/map/domains/Destination";
 import { type Tables } from "@/lib/supabase/schema";
 
-export type DestinationDTO = {
+export interface DestinationDTO {
   id: number;
   title: string;
   lat: number;
   lng: number;
   map_id: string;
-};
+}
 
 export const toDTO = (
   destination: Destination,
@@ -24,7 +24,7 @@ export const toDTO = (
     lng = destination.latlng.lng;
     lat = destination.latlng.lat;
   } else {
-    throw new Error("Invalid latlng format");
+    throw new Error("緯度経度の値が不正です");
   }
 
   const baseDTO: DestinationDTO = {
@@ -38,6 +38,6 @@ export const toDTO = (
   return baseDTO;
 };
 
-export const fromDB = (row: Tables<"destination">): Destination => {
+export const fromDTO = (row: Tables<"destination">): DestinationClass => {
   return new DestinationClass(row.id, [row.lng, row.lat], row.title ?? "");
 };

@@ -1,5 +1,5 @@
-import { Destination } from "@/domains/Destination";
-import type { DestinationRepository } from "@/repositories/DestinationRepository";
+import { Destination } from "@/features/map/domains/Destination";
+import { type DestinationRepository } from "@/features/map/domains/DestinationRepository";
 import maplibregl from "maplibre-gl";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";

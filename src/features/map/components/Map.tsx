@@ -1,13 +1,26 @@
 import useMapEvent from "@/features/map/hooks/useMapEvent";
-import { DestinationRepository } from "@/repositories/DestinationRepository";
+import { type DestinationRepository } from "@/features/map/domains/DestinationRepository";
+import SupabaseDestinationRepository from "@/features/map/infrastructure/SupabaseDestinationRepository";
 import { useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router";
 import useDestinationMarkerManager from "../hooks/useDestinationMarkerManager";
 import { toast } from "react-toastify";
 
-const MeetMap = () => {
+const Map = () => {
   const { mapId } = useParams();
-  const repo = useMemo(() => new DestinationRepository(mapId), [mapId]);
+  const repo = useMemo(
+    () => new SupabaseDestinationRepository(mapId!),
+    [mapId],
+  );
+  return <BaseMap mapId={mapId} repo={repo} />;
+};
+
+interface Props {
+  mapId: string | undefined;
+  repo: DestinationRepository;
+}
+
+const BaseMap = ({ mapId, repo }: Props) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const { createMarker, cleanup } = useDestinationMarkerManager(repo);
@@ -31,9 +44,9 @@ const MeetMap = () => {
       }
     };
     load();
-  }, [mapState]);
+  }, [mapState, repo, createMarker]);
 
   return <div ref={mapContainerRef} className="h-full w-full" />;
 };
 
-export default MeetMap;
+export default Map;

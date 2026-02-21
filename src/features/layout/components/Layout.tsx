@@ -1,4 +1,4 @@
-import Header from "@/pages/Header";
+import Header from "@/features/layout/components/Header";
 import { memo, useEffect } from "react";
 import { Outlet } from "react-router";
 import { ToastContainer } from "react-toastify";

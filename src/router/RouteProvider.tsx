@@ -1,6 +1,6 @@
-import Home from "@/pages/Home";
-import Layout from "@/pages/Layout";
-import MeetMap from "@/features/map/components/MeetMap";
+import Home from "@/features/home/components/Home";
+import Layout from "@/features/layout/components/Layout";
+import Map from "@/features/map/components/Map";
 import { BrowserRouter, Route, Routes } from "react-router";
 
 const RouteProvider = () => {
@@ -9,7 +9,7 @@ const RouteProvider = () => {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="map/:mapId" element={<MeetMap />} />
+          <Route path="map/:mapId" element={<Map />} />
         </Route>
       </Routes>
     </BrowserRouter>

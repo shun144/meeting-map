@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
-import { MapRepository } from "@/repositories/map/MapRepository";
+import { MapRepository } from "@/features/map/infrastructure/MapRepository";
 import { NavLink } from "react-router";
 
 interface MapDTO {
