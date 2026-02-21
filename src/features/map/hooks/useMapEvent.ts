@@ -39,17 +39,16 @@ const useMapEvent = (
         trackUserLocation: true,
         showAccuracyCircle: false,
         showUserLocation: false,
+
         fitBoundsOptions: {
-          maxZoom: 19,
+          zoom: mapInstance.getZoom(),
           linear: true,
-          duration: 600,
+          duration: 0,
         },
       });
       mapInstance.addControl(geolocateControl);
 
       geolocateControl.on("geolocate", (event) => {
-        // const heading = event.coords.heading;
-        // userMarker.setRotation(heading);
         const newPos = new maplibregl.LngLat(
           event.coords.longitude,
           event.coords.latitude,
@@ -67,30 +66,27 @@ const useMapEvent = (
           currentPos,
           newPos,
           600,
-          (lnglat) => {
-            userMarker.setLngLat(lnglat);
-            mapInstance.easeTo({ center: lnglat, duration: 0 });
-          },
+          (lnglat) => userMarker.setLngLat(lnglat),
         );
         currentPos = newPos;
       });
 
-      // geolocateControl.on("outofmaxbounds", () => {
-      //   console.log("An outofmaxbounds event has occurred.");
+      // geolocateControl.on("trackuserlocationend", (event) => {
+      //   console.log("trackuserlocationend", event.target._watchState);
+      // });
+
+      // geolocateControl.on("userlocationfocus", (event) => {
+      //   console.log("userlocationfocus", event.target._watchState);
+      // });
+      // geolocateControl.on("userlocationlostfocus", (event) => {
+      //   console.log("userlocationlostfocus", event.target._watchState);
       // });
 
       geolocateControl.on("trackuserlocationstart", (event) => {
+        mapInstance.stop();
         // console.log("trackuserlocationstart", event.target._watchState);
         userMarker.setOpacity("1");
       });
-
-      // geolocateControl.on("userlocationlostfocus", function (event) {
-      //   console.log("An userlocationlostfocus event has occurred.");
-      // });
-
-      // geolocateControl.on("userlocationfocus", function (event) {
-      //   console.log("An userlocationfocus event has occurred.");
-      // });
 
       // バックグラウンド状態に切り替わった時に発火;
       // アクティブロック状態でユーザがカメラを移動させた時;
