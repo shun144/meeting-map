@@ -12,7 +12,13 @@ const Layout = () => {
           <Outlet />
         </div>
       </div>
-      <ToastContainer />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        closeOnClick={true}
+        pauseOnHover={true}
+      />
     </div>
   );
 };

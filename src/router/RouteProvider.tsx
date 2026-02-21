@@ -1,6 +1,6 @@
 import Home from "@/pages/Home";
 import Layout from "@/pages/Layout";
-import MeetMap from "@/pages/map/MeetMap";
+import MeetMap from "@/features/map/components/MeetMap";
 import { BrowserRouter, Route, Routes } from "react-router";
 
 const RouteProvider = () => {

@@ -12,17 +12,6 @@ export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
 
   const maxBounds = sw && ne ? new maplibregl.LngLatBounds(sw, ne) : undefined;
 
-  // pmtiles.getMetadata().then((metadata) => {
-  //   console.log(JSON.stringify(metadata, null, 2));
-  // });
-
-  // pmtiles.getHeader().then((header) => {
-  //   console.log(header);
-  //   const sw = new maplibregl.LngLat(header.minLon, header.minLat);
-  //   const ne = new maplibregl.LngLat(header.maxLon, header.maxLat);
-  //   console.log(sw, ne);
-  // });
-
   protocol.add(pmtiles);
   const maplibreglMap = new maplibregl.Map({
     container: mapContainerDiv,
@@ -41,4 +30,30 @@ export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
 
 const getMapStyle = (mapId: string) => {
   return mapStyles[mapId];
+};
+
+import toiletIcon from "@/assets/toilet.png";
+import fastfoodIcon from "@/assets/fastfood.png";
+import cafeIcon from "@/assets/cafe.png";
+import restaurantIcon from "@/assets/restaurant.png";
+import shopIcon from "@/assets/shop.png";
+
+const images: { [key: string]: string } = {
+  "toilet-icon": toiletIcon,
+  "fastfood-icon": fastfoodIcon,
+  "cafe-icon": cafeIcon,
+  "restaurant-icon": restaurantIcon,
+  "shop-icon": shopIcon,
+};
+
+export const addImages = (mapInstance: maplibregl.Map) => {
+  for (const [name, src] of Object.entries(images)) {
+    if (mapInstance.hasImage(name)) continue;
+    const img = new Image(32, 32);
+    img.onload = () => {
+      if (mapInstance.hasImage(name)) return;
+      mapInstance.addImage(name, img);
+    };
+    img.src = src;
+  }
 };

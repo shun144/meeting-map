@@ -3,11 +3,11 @@ import {
   type DestinationCache,
   type MapCache,
 } from "./types";
-import { DB_NAME, DB_VERSION, storeNames } from "./constants";
+import { DB_NAME, storeNames } from "./constants";
 
 function openDataBase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const openRequest = indexedDB.open(DB_NAME, DB_VERSION);
+    const openRequest = indexedDB.open(DB_NAME, 5);
 
     openRequest.onupgradeneeded = function (event) {
       const oldVersion = event.oldVersion;

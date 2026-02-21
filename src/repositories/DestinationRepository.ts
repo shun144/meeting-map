@@ -34,7 +34,7 @@ export class DestinationRepository {
         throw new Error("目的地の保存に失敗しました");
       }
 
-      throw new Error("");
+      // throw new Error("");
 
       await saveCachedDestination(dto).catch((e) =>
         console.error("キャッシュへの目的地取得に失敗しました", e),
