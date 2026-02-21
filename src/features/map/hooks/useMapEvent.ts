@@ -90,6 +90,14 @@ const useMapEvent = (
         timer.current = 0;
       };
 
+      const restartTimer = () => {
+        if (timerId.current) {
+          resetTimer();
+          return;
+        }
+        timerId.current = setInterval(() => (timer.current += 1), 300);
+      };
+
       const createDestMarker = (
         event: maplibregl.MapTouchEvent | maplibregl.MapMouseEvent,
       ) => {
@@ -101,47 +109,27 @@ const useMapEvent = (
       };
 
       let isTouch = false;
-      mapInstance.on("touchstart", () => {
-        isTouch = true;
-        if (timerId.current) {
-          resetTimer();
-          return;
-        }
-        timerId.current = setInterval(() => (timer.current += 1), 300);
-      });
 
-      mapInstance.on("touchend", (event) => {
-        createDestMarker(event);
-        // if (timer.current >= 1 && !isMarker(event)) {
-        //   const addedMarker = createMarker(mapInstance, 0, event.lngLat, "");
-        //   setTimeout(() => addedMarker?.togglePopup(), 0);
-        // }
-        // resetTimer();
-      });
-
-      mapInstance.on("touchmove", () => resetTimer());
-      mapInstance.on("touchcancel", () => resetTimer());
-
-      mapInstance.on("mousedown", () => {
-        if (isTouch) return;
-        if (timerId.current) {
-          resetTimer();
-          return;
-        }
-        timerId.current = setInterval(() => (timer.current += 1), 300);
-      });
-
+      // マーカーの作成（タッチ操作/マウス操作）
+      mapInstance.on("touchend", createDestMarker);
       mapInstance.on("mouseup", (event) => {
         if (isTouch) return;
-
         createDestMarker(event);
-        // if (timer.current >= 1 && !isMarker(event)) {
-        //   const addedMarker = createMarker(mapInstance, 0, event.lngLat, "");
-        //   setTimeout(() => addedMarker?.togglePopup(), 0);
-        // }
-        // resetTimer();
       });
 
+      // タイマーのリスタート（タッチ操作/マウス操作）
+      mapInstance.on("touchstart", () => {
+        isTouch = true;
+        restartTimer();
+      });
+      mapInstance.on("mousedown", () => {
+        if (isTouch) return;
+        restartTimer();
+      });
+
+      // タイマーリセット（タッチ操作/マウス操作）
+      mapInstance.on("touchmove", () => resetTimer());
+      mapInstance.on("touchcancel", () => resetTimer());
       mapInstance.on("movestart", () => {
         if (isTouch) return;
         resetTimer();
