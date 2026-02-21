@@ -83,7 +83,6 @@ const useMapEvent = (
       // });
 
       geolocateControl.on("trackuserlocationstart", (event) => {
-        mapInstance.stop();
         // console.log("trackuserlocationstart", event.target._watchState);
         userMarker.setOpacity("1");
       });
