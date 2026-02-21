@@ -38,7 +38,7 @@ const useMapEvent = (
         },
         trackUserLocation: true,
         showAccuracyCircle: false,
-        showUserLocation: false,
+        showUserLocation: true,
         fitBoundsOptions: {
           maxZoom: 19,
           linear: true,
@@ -47,56 +47,47 @@ const useMapEvent = (
       });
       mapInstance.addControl(geolocateControl);
 
-      geolocateControl.on("geolocate", (event) => {
-        // const heading = event.coords.heading;
-        // userMarker.setRotation(heading);
-        const newPos = new maplibregl.LngLat(
-          event.coords.longitude,
-          event.coords.latitude,
-        );
+      // geolocateControl.on("geolocate", (event) => {
+      //   // const heading = event.coords.heading;
+      //   // userMarker.setRotation(heading);
+      //   const newPos = new maplibregl.LngLat(
+      //     event.coords.longitude,
+      //     event.coords.latitude,
+      //   );
 
-        if (!currentPos) {
-          currentPos = newPos;
-          userMarker.setLngLat(newPos).addTo(mapInstance);
-          mapInstance.jumpTo({ center: newPos, zoom: 18 });
-          return;
-        }
+      //   if (!currentPos) {
+      //     currentPos = newPos;
+      //     userMarker.setLngLat(newPos).addTo(mapInstance);
+      //     mapInstance.jumpTo({ center: newPos, zoom: 18 });
+      //     return;
+      //   }
 
-        animationId = smoothMove(
-          animationId,
-          currentPos,
-          newPos,
-          600,
-          (lnglat) => userMarker.setLngLat(lnglat),
-        );
-        currentPos = newPos;
-      });
+      //   animationId = smoothMove(
+      //     animationId,
+      //     currentPos,
+      //     newPos,
+      //     600,
+      //     (lnglat) => userMarker.setLngLat(lnglat),
+      //   );
+      //   currentPos = newPos;
+      // });
 
       // geolocateControl.on("outofmaxbounds", () => {
       //   console.log("An outofmaxbounds event has occurred.");
       // });
 
       // geolocateControl.on("trackuserlocationstart", (event) => {
-      //   console.log("trackuserlocationstart", event.target._watchState);
       //   userMarker.setOpacity("1");
       // });
 
-      // geolocateControl.on("userlocationlostfocus", function (event) {
-      //   console.log("An userlocationlostfocus event has occurred.");
+      // // バックグラウンド状態に切り替わった時に発火;
+      // // アクティブロック状態でユーザがカメラを移動させた時;
+      // // バックグラウンド状態は位置情報の更新はするがカメラは移動しない;
+      // geolocateControl.on("trackuserlocationend", (event) => {
+      //   if (event.target._watchState === "OFF") {
+      //     userMarker.setOpacity("0");
+      //   }
       // });
-
-      // geolocateControl.on("userlocationfocus", function (event) {
-      //   console.log("An userlocationfocus event has occurred.");
-      // });
-
-      // バックグラウンド状態に切り替わった時に発火;
-      // アクティブロック状態でユーザがカメラを移動させた時;
-      // バックグラウンド状態は位置情報の更新はするがカメラは移動しない;
-      geolocateControl.on("trackuserlocationend", (event) => {
-        if (event.target._watchState === "OFF") {
-          userMarker.setOpacity("0");
-        }
-      });
 
       const resetTimer = () => {
         clearInterval(timerId.current);
