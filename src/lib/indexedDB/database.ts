@@ -49,11 +49,11 @@ export async function fetchMaps() {
   return new Promise<MapCache[]>((resolve, reject) => {
     const tx = db.transaction([storeNames.MAPS], "readonly");
     const store = tx.objectStore(storeNames.MAPS);
-    const getRequest = store.getAll();
-    getRequest.onsuccess = function () {
+    const req = store.getAll();
+    req.onsuccess = function () {
       resolve(this.result);
     };
-    getRequest.onerror = function () {
+    req.onerror = function () {
       reject(this.error);
     };
   });
@@ -114,11 +114,11 @@ export async function fetchAllDestinations(key: IDBValidKey) {
     const tx = db.transaction([storeNames.DESTINATIONS], "readonly");
     const store = tx.objectStore(storeNames.DESTINATIONS);
     const index = store.index("mapIdIdx");
-    const getAllRequest = index.getAll(key);
-    getAllRequest.onsuccess = function () {
+    const req = index.getAll(key);
+    req.onsuccess = function () {
       resolve(this.result);
     };
-    getAllRequest.onerror = function () {
+    req.onerror = function () {
       reject(this.error);
     };
   });

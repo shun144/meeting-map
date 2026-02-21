@@ -32,18 +32,20 @@ const getMapStyle = (mapId: string) => {
   return mapStyles[mapId];
 };
 
-import toiletIcon from "@/assets/toilet.png";
-import fastfoodIcon from "@/assets/fastfood.png";
-import cafeIcon from "@/assets/cafe.png";
-import restaurantIcon from "@/assets/restaurant.png";
-import shopIcon from "@/assets/shop.png";
+import { toilet, fastfood, cafe, restaurant, shop } from "@/assets/icon";
+
+// import toiletIcon from "@/assets/toilet.png";
+// import fastfoodIcon from "@/assets/fastfood.png";
+// import cafeIcon from "@/assets/cafe.png";
+// import restaurantIcon from "@/assets/restaurant.png";
+// import shopIcon from "@/assets/shop.png";
 
 const images: { [key: string]: string } = {
-  "toilet-icon": toiletIcon,
-  "fastfood-icon": fastfoodIcon,
-  "cafe-icon": cafeIcon,
-  "restaurant-icon": restaurantIcon,
-  "shop-icon": shopIcon,
+  "toilet-icon": toilet,
+  "fastfood-icon": fastfood,
+  "cafe-icon": cafe,
+  "restaurant-icon": restaurant,
+  "shop-icon": shop,
 };
 
 export const addImages = (mapInstance: maplibregl.Map) => {
