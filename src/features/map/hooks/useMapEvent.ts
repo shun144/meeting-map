@@ -55,6 +55,25 @@ const useMapEvent = (
       });
       mapInstance.addControl(geolocateControl);
 
+      const startCompass = async () => {
+        // iOSの権限リクエスト
+        if (
+          typeof (DeviceOrientationEvent as any).requestPermission ===
+          "function"
+        ) {
+          const permission = await (
+            DeviceOrientationEvent as any
+          ).requestPermission();
+          if (permission !== "granted") return;
+        }
+
+        window.addEventListener("deviceorientation", (event) => {
+          const heading =
+            (event as any).webkitCompassHeading ?? event.alpha ?? 0;
+          userMarker.setRotation(heading);
+        });
+      };
+
       geolocateControl.on("geolocate", (event) => {
         const heading = event.coords.heading ?? 0;
         userMarker.setRotation(heading);
@@ -82,6 +101,7 @@ const useMapEvent = (
       });
 
       geolocateControl.on("trackuserlocationstart", () => {
+        startCompass();
         userMarker.setOpacity("1");
       });
 
