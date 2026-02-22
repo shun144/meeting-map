@@ -101,7 +101,9 @@ const useMapEvent = (
       });
 
       geolocateControl.on("outofmaxbounds", () => {
-        toast.error("現在地が地図の範囲外です");
+        toast.error("現在地が地図の範囲外です", {
+          toastId: "out-of-max-bounds",
+        });
       });
 
       // バックグラウンド状態に切り替わった時に発火;
