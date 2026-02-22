@@ -5,8 +5,6 @@ import { useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router";
 import { toast } from "react-toastify";
 import { useMapStore } from "@/store/useMapStore";
-import { Destination } from "../domains/Destination";
-import DestinationMarker from "../domains/DestinationMarker";
 import useDestinationMarkerManager from "../hooks/useDestinationMarkerManager";
 
 const Map = () => {

@@ -12,10 +12,16 @@ const useDestinationMarkerManager = (repo: DestinationRepository) => {
         useMapStore.getState();
 
       const onChangeInput = (title: string) => {
+        dm.destination = new Destination(
+          dm.destination.id,
+          dm.destination.latlng,
+          title,
+        );
+
         if (dm.status === "NEW") {
           addMarkers(dm);
           repo
-            .add(destination)
+            .add(dm.destination)
             .then(() => {
               dm.status = "SAVED";
             })
@@ -30,16 +36,9 @@ const useDestinationMarkerManager = (repo: DestinationRepository) => {
           return;
         }
 
-        dm.destination = new Destination(
-          dm.destination.id,
-          dm.destination.latlng,
-          title,
-        );
         repo
           .update(dm.destination)
-          .then(() => {
-            updateMarkers(dm);
-          })
+          .then(() => updateMarkers(dm))
           .catch((error) => {
             const message =
               error instanceof Error

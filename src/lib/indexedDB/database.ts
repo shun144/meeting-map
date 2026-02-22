@@ -7,7 +7,7 @@ import { DB_NAME, storeNames } from "./constants";
 
 function openDataBase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const openRequest = indexedDB.open(DB_NAME, 6);
+    const openRequest = indexedDB.open(DB_NAME, 7);
 
     openRequest.onupgradeneeded = function (event) {
       const oldVersion = event.oldVersion;
@@ -20,7 +20,7 @@ function openDataBase(): Promise<IDBDatabase> {
       }
 
       db.createObjectStore(storeNames.MAPS, {
-        keyPath: ["id"],
+        keyPath: "id",
       });
 
       db.createObjectStore(storeNames.PMTILES, {
@@ -39,6 +39,21 @@ function openDataBase(): Promise<IDBDatabase> {
     };
 
     openRequest.onerror = function () {
+      reject(this.error);
+    };
+  });
+}
+
+export async function fetchMap(id: string) {
+  const db = await openDataBase();
+  return new Promise<MapCache>((resolve, reject) => {
+    const tx = db.transaction([storeNames.MAPS], "readonly");
+    const store = tx.objectStore(storeNames.MAPS);
+    const req = store.get(id);
+    req.onsuccess = function () {
+      resolve(this.result);
+    };
+    req.onerror = function () {
       reject(this.error);
     };
   });
@@ -159,7 +174,8 @@ export async function saveDestination(payload: DestinationCache) {
   });
 }
 
-export async function restoreDestination(
+export async function restoreDestinationByMapId(
+  mapId: string,
   payloads: DestinationCache[],
 ): Promise<void> {
   const db = await openDataBase();
@@ -167,8 +183,21 @@ export async function restoreDestination(
     const tx = db.transaction([storeNames.DESTINATIONS], "readwrite");
     const store = tx.objectStore(storeNames.DESTINATIONS);
 
-    store.clear();
-    payloads.forEach((x) => store.put(x));
+    const index = store.index("mapIdIdx");
+
+    // mapIdに一致するレコードのカーソルを取得して削除
+    const deleteRequest = index.openCursor(IDBKeyRange.only(mapId));
+    deleteRequest.onsuccess = function () {
+      const cursor = this.result; // 現在のレコードを指すカーソル
+      if (cursor) {
+        cursor.delete(); // カーソルが指しているレコードを削除
+        cursor.continue(); // 次のレコードに移動（onsuccessが再度発火する）
+      } else {
+        // cursorがnull = 対象レコードが全て処理された
+        payloads.forEach((x) => store.put(x));
+      }
+    };
+
     tx.oncomplete = () => resolve();
     tx.onerror = function () {
       reject(this.error);
@@ -192,5 +221,22 @@ export async function deleteDestination(key: IDBValidKey) {
       reject(this.error);
     };
     tx.oncomplete = () => resolve();
+  });
+}
+
+export async function clearCache() {
+  const db = await openDataBase();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(
+      [storeNames.MAPS, storeNames.DESTINATIONS, storeNames.PMTILES],
+      "readwrite",
+    );
+    tx.objectStore(storeNames.MAPS).clear();
+    tx.objectStore(storeNames.DESTINATIONS).clear();
+    tx.objectStore(storeNames.PMTILES).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = function () {
+      reject(this.error);
+    };
   });
 }

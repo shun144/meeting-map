@@ -1,13 +1,61 @@
-import { createMap, addImages } from "@/features/map/utils/map";
+import { addImages, createMap } from "@/features/map/utils/map";
+import { isMarker, smoothMove } from "@/features/map/utils/marker";
+import { useMapStore } from "@/store/useMapStore";
 import maplibregl from "maplibre-gl";
 import React, { useEffect, useRef, useState } from "react";
-import { smoothMove, isMarker } from "@/features/map/utils/marker";
-import { useMapStore } from "@/store/useMapStore";
 import { Destination } from "../domains/Destination";
-import DestinationMarker from "../domains/DestinationMarker";
 import type { DestinationRepository } from "../domains/DestinationRepository";
-import { toast } from "react-toastify";
 import useDestinationMarkerManager from "./useDestinationMarkerManager";
+import { toast } from "react-toastify";
+
+const createUserMarkerElement = () => {
+  const el = document.createElement("div");
+  el.style.cssText = `
+    position: relative;
+    width: 24px;
+    height: 24px;
+  `;
+
+  el.innerHTML = `
+    <style>
+      @keyframes ripple {
+        0% { r: 10; opacity: 0.6; }
+        100% { r: 28; opacity: 0; }
+      }
+    .ripple-1 { animation: ripple 3s ease-out infinite; }
+    .ripple-2 { animation: ripple 3s ease-out infinite 0.9s; }
+    .ripple-3 { animation: ripple 3s ease-out infinite 1.8s; }
+    </style>
+    <svg width="80" height="80" viewBox="0 0 80 80" style="position: absolute; top: -28px; left: -28px; overflow: visible;">
+      <defs>
+        <radialGradient id="beamGrad" cx="50%" cy="100%" r="80%">
+          <stop offset="0%" stop-color="#4285F4" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#4285F4" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- 扇形のビーム -->
+      <path
+        d="M40 40 L20 0 A45 45 0 0 1 60 0 Z"
+        fill="url(#beamGrad)"
+      />
+
+      <!-- 波紋 -->
+      <circle class="ripple-1" cx="40" cy="40" r="10" fill="none" stroke="#4285F4" stroke-width="1.5" opacity="0"/>
+      <circle class="ripple-2" cx="40" cy="40" r="10" fill="none" stroke="#4285F4" stroke-width="1.5" opacity="0"/>
+      <circle class="ripple-3" cx="40" cy="40" r="10" fill="none" stroke="#4285F4" stroke-width="1.5" opacity="0"/>
+
+      <!-- 外側の円（精度リング） -->
+      <circle cx="40" cy="40" r="16" fill="#4285F4" fill-opacity="0.15"/>
+      <!-- メインの青い円 -->
+      <circle cx="40" cy="40" r="10" fill="#4285F4"/>
+      <!-- 中心の白い円 -->
+      <circle cx="40" cy="40" r="4" fill="white"/>
+    </svg>
+  `;
+
+  return el;
+};
 
 const useMapEvent = (
   mapContainerRef: React.RefObject<HTMLDivElement | null>,
@@ -23,14 +71,16 @@ const useMapEvent = (
   useEffect(() => {
     if (!mapContainerRef.current || !mapId) return;
 
-    const { addMarkers, updateMarkers, filterMarkers, cleanupMarkers } =
-      useMapStore.getState();
+    const { addMarkers, cleanupMarkers } = useMapStore.getState();
     const mapInstance = createMap(mapId, mapContainerRef.current);
 
     let currentPos: maplibregl.LngLat | null = null;
     let animationId: number | null = null;
 
-    const userMarker = new maplibregl.Marker({ color: "red", opacity: "0" });
+    // const userMarker = new maplibregl.Marker({ color: "red", opacity: "0" });
+    const userMarker = new maplibregl.Marker({
+      element: createUserMarkerElement(),
+    });
 
     mapInstance.on("load", () => {
       setMapState(mapInstance);
@@ -54,6 +104,12 @@ const useMapEvent = (
       mapInstance.addControl(geolocateControl);
 
       geolocateControl.on("geolocate", (event) => {
+        const heading = event.coords.heading ?? 0;
+        const el = userMarker.getElement();
+        el.style.transform = `rotate(${heading}deg)`;
+
+        // userMarker.setRotation(heading);
+
         const newPos = new maplibregl.LngLat(
           event.coords.longitude,
           event.coords.latitude,
@@ -78,6 +134,10 @@ const useMapEvent = (
 
       geolocateControl.on("trackuserlocationstart", () => {
         userMarker.setOpacity("1");
+      });
+
+      geolocateControl.on("outofmaxbounds", () => {
+        toast.error("現在地が地図の範囲外です");
       });
 
       // バックグラウンド状態に切り替わった時に発火;

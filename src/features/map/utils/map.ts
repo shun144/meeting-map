@@ -2,6 +2,7 @@ import maplibregl from "maplibre-gl";
 import { PMTiles, Protocol } from "pmtiles";
 import { mapStyles } from "@/config/mapStyle";
 import { toilet, fastfood, cafe, restaurant, shop } from "@/assets/icon";
+import { toast } from "react-toastify";
 
 export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
   const { src, style, center, zoom, maxZoom, minZoom, sw, ne } =
@@ -23,6 +24,14 @@ export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
     maxBounds,
     style,
     doubleClickZoom: false,
+  });
+
+  maplibreglMap.on("error", (event) => {
+    if (event.error.message !== "Failed to fetch") return;
+
+    toast.error("地図データの読み込みに失敗しました", {
+      toastId: "map-fetch-error",
+    });
   });
 
   maplibreglMap.getCanvas().style.cursor = "pointer";

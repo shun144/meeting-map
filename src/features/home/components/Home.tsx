@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { MapRepository } from "@/features/map/infrastructure/MapRepository";
 import { NavLink } from "react-router";
+import { clearCache } from "@/lib/indexedDB/database";
 
 interface MapDTO {
   id: string;
@@ -11,6 +12,8 @@ const Home = () => {
   const repo = useMemo(() => new MapRepository(), []);
   const [mapInfos, setMapInfos] = useState<MapDTO[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const [clearSuccess, setClearSuccess] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -25,8 +28,25 @@ const Home = () => {
     })();
   }, []);
 
+  const handleClearCache = async () => {
+    if (!confirm("キャッシュをクリアしますか？")) return;
+
+    setIsClearing(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await clearCache();
+
+      setClearSuccess(true);
+      setTimeout(() => setClearSuccess(false), 3000);
+    } catch (error) {
+      console.error("キャッシュクリアに失敗しました", error);
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 py-6 sm:py-8 px-3 sm:px-4 lg:px-8">
+    <div className="min-h-full bg-linear-to-br from-blue-50 to-indigo-100 py-6 sm:py-8 px-3 sm:px-4 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-6 sm:mb-8 lg:mb-12">
           <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg mb-3 sm:mb-4 lg:mb-6">
@@ -52,11 +72,8 @@ const Home = () => {
           </div>
 
           <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800 mb-1 sm:mb-2 px-2">
-            地図テンプレートを選択してください
+            地図を選択してください
           </h1>
-          <p className="text-xs sm:text-sm lg:text-base text-gray-600 px-2">
-            待ち合わせに使用する地図を選んでください
-          </p>
         </div>
 
         {/* カードリスト */}
@@ -75,7 +92,7 @@ const Home = () => {
                         isActive
                           ? "border-blue-500 ring-2 sm:ring-4 ring-blue-100"
                           : "border-transparent hover:border-blue-200"
-                      }`
+                      } ${isClearing ? "cursor-not-allowed opacity-50" : ""}`
                     }
                   >
                     <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
@@ -98,29 +115,7 @@ const Home = () => {
                         <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors truncate">
                           {mapInfo.name}
                         </h2>
-                        <p className="text-xs sm:text-sm text-gray-500">
-                          標準テンプレート
-                        </p>
                       </div>
-                    </div>
-                    <p className="text-xs sm:text-sm lg:text-base text-gray-600 mb-3 sm:mb-4">
-                      シンプルで使いやすい基本的な地図テンプレートです
-                    </p>
-                    <div className="flex items-center text-blue-600 font-medium text-xs sm:text-sm lg:text-base">
-                      選択する
-                      <svg
-                        className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 ml-1 group-hover:translate-x-1 transition-transform"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
                     </div>
                   </NavLink>
                 ))}
@@ -143,10 +138,10 @@ const Home = () => {
                   </svg>
                 </div>
                 <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-2 px-4">
-                  地図テンプレートがありません
+                  地図がありません
                 </h3>
                 <p className="text-xs sm:text-sm lg:text-base text-gray-600 max-w-md mx-auto px-4">
-                  現在利用可能な地図テンプレートがありません。
+                  現在利用可能な地図がありません。
                   <br className="hidden sm:inline" />
                   しばらく経ってから再度お試しください。
                 </p>
@@ -165,10 +160,67 @@ const Home = () => {
               読み込み中...
             </h3>
             <p className="text-xs sm:text-sm lg:text-base text-gray-600">
-              地図テンプレートを取得しています
+              地図を取得しています
             </p>
           </div>
         )}
+
+        {/* キャッシュクリア */}
+        <div className="mt-10 sm:mt-14 border-t border-indigo-100 pt-6 sm:pt-8 flex flex-col items-center gap-3">
+          <p className="text-xs sm:text-sm text-gray-400 text-center">
+            キャッシュした地図データをクリアする
+            <br className="sm:hidden" />
+            場合はこちらをクリック
+          </p>
+          <button
+            onClick={handleClearCache}
+            disabled={isClearing}
+            className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg border border-red-200 text-red-500 text-xs sm:text-sm font-medium hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {isClearing ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-red-300 border-t-red-500 rounded-full animate-spin" />
+                クリア中...
+              </>
+            ) : (
+              <>
+                <svg
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                キャッシュクリア
+              </>
+            )}
+          </button>
+
+          {clearSuccess && (
+            <p className="text-xs text-green-500 flex items-center gap-1">
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              キャッシュをクリアしました
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

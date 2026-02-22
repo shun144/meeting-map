@@ -6,9 +6,10 @@ import {
 import { NavigationRoute, registerRoute } from "workbox-routing";
 import {
   fetchAllDestinations,
+  fetchMap,
   fetchMaps,
   fetchPMTiles,
-  restoreDestination,
+  restoreDestinationByMapId,
   restoreMaps,
   savePMTiles,
 } from "./lib/indexedDB/database";
@@ -52,14 +53,27 @@ self.addEventListener("fetch", (event) => {
   const params = url.searchParams;
   const method = event.request.method;
 
+  // 特定マップの存在チェック
   const isMapFetchQuery =
+    method === "GET" &&
+    url.pathname.includes("/rest/v1/map") &&
+    params.get("select") === "id" &&
+    params.has("id");
+
+  if (isMapFetchQuery) {
+    const response = handleMapRequest(event, params);
+    event.respondWith(response);
+    return;
+  }
+
+  // 全マップ情報の取得
+  const isAllMapsFetchQuery =
     method === "GET" &&
     url.pathname.includes("/rest/v1/map") &&
     params.get("select") === "id,name,updated_at";
 
-  // マップ情報の取得
-  if (isMapFetchQuery) {
-    const response = handleMapsRequest(event);
+  if (isAllMapsFetchQuery) {
+    const response = handleAllMapsRequest(event);
     event.respondWith(response);
     return;
   }
@@ -85,59 +99,80 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
-async function handleMapsRequest(event: FetchEvent) {
-  const cached = await fetchMaps().catch(() => [] as MapCache[]);
-
-  if (cached.length > 0) {
+async function handleMapRequest(event: FetchEvent, params: URLSearchParams) {
+  const regex = /eq\.(?<id>.*)/;
+  const matchGroups = params.get("id")?.match(regex)?.groups;
+  if (!matchGroups) {
+    return fetch(event.request);
+  }
+  const { id } = matchGroups;
+  const cached = await fetchMap(id).catch(() => null);
+  if (cached) {
     const headers = new Headers({
       "Content-Type": "application/json; charset=utf-8",
       "x-cache-source": "indexeddb",
     });
 
-    const { data: serverMeta, error } = await supabase
-      .from("map")
-      .select("id,updated_at")
-      .eq("invalid_flg", false);
-
-    if (error) {
-      // fetchエラーの場合キャッシュを返す
-      return new Response(JSON.stringify(cached), {
-        status: 200,
-        headers,
-      });
-    }
-
-    const serverMetaStr = serverMeta
-      .map((x) => `${x.id}${x.updated_at}`)
-      .sort()
-      .join();
-
-    const cachedMetaStr = cached
-      .map((x) => `${x.id}${x.updated_at}`)
-      .sort()
-      .join();
-
-    // キャッシュとsupabaseの保持情報が同じ場合キャッシュを返す
-    // 比較はidとupdated_atで行う
-    if (serverMetaStr === cachedMetaStr) {
-      return new Response(JSON.stringify(cached), {
-        status: 200,
-        headers,
-      });
-    }
+    return new Response(JSON.stringify(cached), {
+      status: 200,
+      headers,
+    });
   }
 
-  const originalRes = await fetch(event.request);
-  if (!originalRes.ok) return originalRes;
-  const clonedRes = originalRes.clone();
+  return fetch(event.request);
+}
+
+async function handleAllMapsRequest(event: FetchEvent) {
+  const cached = await fetchMaps().catch(() => [] as MapCache[]);
+
+  const { data: serverMeta, error: serverError } = await supabase
+    .from("map")
+    .select("id,updated_at")
+    .eq("invalid_flg", false);
+
+  const headers = new Headers({
+    "Content-Type": "application/json; charset=utf-8",
+    "x-cache-source": "indexeddb",
+  });
+
+  if (serverError) {
+    // fetchエラーの場合キャッシュを返す
+    return new Response(JSON.stringify(cached), {
+      status: 200,
+      headers,
+    });
+  }
+
+  const serverMetaStr = serverMeta
+    .map((x) => `${x.id}${x.updated_at}`)
+    .sort()
+    .join();
+
+  const cachedMetaStr = cached
+    .map((x) => `${x.id}${x.updated_at}`)
+    .sort()
+    .join();
+
+  // キャッシュとsupabaseの保持情報が同じ場合キャッシュを返す
+  // 比較はidとupdated_atで行う
+  if (serverMetaStr === cachedMetaStr) {
+    return new Response(JSON.stringify(cached), {
+      status: 200,
+      headers,
+    });
+  }
+
+  const response = await fetch(event.request);
+  if (!response.ok) return response;
+  const clonedResponse = response.clone();
   event.waitUntil(
     (async () => {
-      const payloads = (await clonedRes.json()) as MapCache[];
+      const payloads = (await clonedResponse.json()) as MapCache[];
       // DBとキャッシュデータの整合性が一致するようにキャッシュをリストア
       await restoreMaps(payloads).catch((error) => console.error(error));
     })(),
   );
-  return originalRes;
+  return response;
 }
 
 async function handlePMTilesRequest(event: FetchEvent, url: URL) {
@@ -154,7 +189,7 @@ async function handlePMTilesRequest(event: FetchEvent, url: URL) {
   const { area, version } = matchGroups;
   const resDB = await fetchPMTiles([area, version]).catch(() => null);
   if (resDB && resDB.pmtiles) {
-    // キャッシュヒットの場合、indexedDBに保持しているpmtilesを
+    // キャッシュヒットの場合、indexedDBに保持しているpmtilesをpartial contentで返却
     // range取得している
     const rangeHeader = event.request.headers.get("Range");
 
@@ -223,63 +258,62 @@ async function handleDestinationRequest(
       status: 400,
     });
   }
-
   const { map_id } = matchGroups;
 
   const cached = await fetchAllDestinations(map_id).catch(
     () => [] as DestinationCache[],
   );
 
-  if (cached.length > 0) {
-    const headers = new Headers({
-      "Content-Type": "application/json; charset=utf-8",
-      "x-cache-source": "indexeddb",
+  const { data: serverMeta, error: serverError } = await supabase
+    .from("destination")
+    .select("id,updated_at");
+
+  const headers = new Headers({
+    "Content-Type": "application/json; charset=utf-8",
+    "x-cache-source": "indexeddb",
+  });
+
+  if (serverError) {
+    // fetchエラーの場合キャッシュを返す(オフライン対応)
+    return new Response(JSON.stringify(cached), {
+      status: 200,
+      headers,
     });
-
-    const { data: serverMeta, error } = await supabase
-      .from("destination")
-      .select("id,updated_at");
-
-    if (error) {
-      // fetchエラーの場合キャッシュを返す(オフライン対応)
-      return new Response(JSON.stringify(cached), {
-        status: 200,
-        headers,
-      });
-    }
-
-    const serverMetaStr = serverMeta
-      .map((x) => `${x.id}${x.updated_at}`)
-      .sort()
-      .join();
-
-    const cachedMetaStr = cached
-      .map((x) => `${x.id}${x.updated_at}`)
-      .sort()
-      .join();
-
-    // キャッシュとsupabaseの保持情報が同じ場合キャッシュを返す
-    // 比較はidとupdated_atで行う
-    if (serverMetaStr === cachedMetaStr) {
-      return new Response(JSON.stringify(cached), {
-        status: 200,
-        headers,
-      });
-    }
   }
 
-  const orgRes = await fetch(event.request);
-  if (!orgRes.ok) return orgRes;
+  const serverMetaStr = serverMeta
+    .map((x) => `${x.id}${x.updated_at}`)
+    .sort()
+    .join();
 
-  const clonedRes = orgRes.clone();
+  const cachedMetaStr = cached
+    .map((x) => `${x.id}${x.updated_at}`)
+    .sort()
+    .join();
+
+  // キャッシュとsupabaseの保持情報が同じ場合キャッシュを返す
+  // 比較はidとupdated_atで行う
+  if (serverMetaStr === cachedMetaStr) {
+    return new Response(JSON.stringify(cached), {
+      status: 200,
+      headers,
+    });
+  }
+
+  const response = await fetch(event.request);
+  if (!response.ok) return response;
+
+  const clonedResponse = response.clone();
   event.waitUntil(
     (async () => {
-      const payloads = (await clonedRes.json()) as DestinationCache[];
+      const payloads = (await clonedResponse.json()) as DestinationCache[];
 
       // DBとキャッシュデータの整合性が一致するようにキャッシュをリストア
-      await restoreDestination(payloads).catch((error) => console.error(error));
+      await restoreDestinationByMapId(map_id, payloads).catch((error) =>
+        console.error(error),
+      );
     })(),
   );
 
-  return orgRes;
+  return response;
 }
