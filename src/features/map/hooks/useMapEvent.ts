@@ -30,6 +30,8 @@ const useMapEvent = (
     let animationId: number | null = null;
     const userMarker = new maplibregl.Marker({
       element: createUserMarkerElement(),
+      rotationAlignment: "map", // 地図の向き先を変えるとユーザーアイコンの向き先も変える
+      pitchAlignment: "map",
     });
 
     mapInstance.on("load", () => {
