@@ -5,10 +5,12 @@ import { ToastContainer } from "react-toastify";
 
 const Layout = () => {
   return (
-    <div className="h-dvh flex flex-col overflow-hidden">
-      <Header />
-      <div className="flex-1 overflow-hidden">
-        <Outlet />
+    <div className="h-screen overflow-y-scroll">
+      <div className="flex flex-col h-full">
+        <Header />
+        <div className="flex-1">
+          <Outlet />
+        </div>
       </div>
       <ToastContainer
         position="bottom-right"
