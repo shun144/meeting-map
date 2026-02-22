@@ -48,7 +48,7 @@ export default class DestinationMarker {
     inputElem.addEventListener("focusout", () => {
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: "instant" });
-      }, 300);
+      }, 100);
       this.element.togglePopup();
     });
 
