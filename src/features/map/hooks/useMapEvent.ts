@@ -2,24 +2,29 @@ import { createMap, addImages } from "@/features/map/utils/map";
 import maplibregl from "maplibre-gl";
 import React, { useEffect, useRef, useState } from "react";
 import { smoothMove, isMarker } from "@/features/map/utils/marker";
+import { useMapStore } from "@/store/useMapStore";
+import { Destination } from "../domains/Destination";
+import DestinationMarker from "../domains/DestinationMarker";
+import type { DestinationRepository } from "../domains/DestinationRepository";
+import { toast } from "react-toastify";
+import useDestinationMarkerManager from "./useDestinationMarkerManager";
 
 const useMapEvent = (
   mapContainerRef: React.RefObject<HTMLDivElement | null>,
   mapId: string | undefined,
-  createMarker: (
-    map: maplibregl.Map | null,
-    id: number,
-    latlng: maplibregl.LngLatLike,
-    title: string,
-  ) => maplibregl.Marker | undefined,
-  cleanupDestinationMarkers: () => void,
+  repo: DestinationRepository,
 ) => {
   const timerId = useRef<number | undefined>(undefined);
   const timer = useRef<number>(0);
   const [mapState, setMapState] = useState<maplibregl.Map | null>(null);
 
+  const { createDestinationMarker } = useDestinationMarkerManager(repo);
+
   useEffect(() => {
     if (!mapContainerRef.current || !mapId) return;
+
+    const { addMarkers, updateMarkers, filterMarkers, cleanupMarkers } =
+      useMapStore.getState();
     const mapInstance = createMap(mapId, mapContainerRef.current);
 
     let currentPos: maplibregl.LngLat | null = null;
@@ -98,12 +103,15 @@ const useMapEvent = (
         timerId.current = setInterval(() => (timer.current += 1), 300);
       };
 
-      const createDestMarker = (
+      const insertDestinationMarker = (
         event: maplibregl.MapTouchEvent | maplibregl.MapMouseEvent,
       ) => {
         if (timer.current >= 1 && !isMarker(event)) {
-          const addedMarker = createMarker(mapInstance, 0, event.lngLat, "");
-          setTimeout(() => addedMarker?.togglePopup(), 0);
+          const destination = new Destination(Date.now(), event.lngLat, "");
+          const dm = createDestinationMarker(destination, "NEW");
+          dm.element.addTo(mapInstance);
+          addMarkers(dm);
+          setTimeout(() => dm.element.togglePopup(), 0);
         }
         resetTimer();
       };
@@ -111,10 +119,10 @@ const useMapEvent = (
       let isTouch = false;
 
       // マーカーの作成（タッチ操作/マウス操作）
-      mapInstance.on("touchend", createDestMarker);
+      mapInstance.on("touchend", insertDestinationMarker);
       mapInstance.on("mouseup", (event) => {
         if (isTouch) return;
-        createDestMarker(event);
+        insertDestinationMarker(event);
       });
 
       // タイマーのリスタート（タッチ操作/マウス操作）
@@ -158,7 +166,7 @@ const useMapEvent = (
       }
 
       setMapState(null);
-      cleanupDestinationMarkers();
+      cleanupMarkers();
     };
   }, []);
 

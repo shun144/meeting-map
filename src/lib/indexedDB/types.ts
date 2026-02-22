@@ -13,7 +13,8 @@ export interface PmtilesCache {
 export interface DestinationCache {
   map_id: string;
   id: number;
-  title: string;
+  title: string | null;
   lat: number;
   lng: number;
+  updated_at: string;
 }

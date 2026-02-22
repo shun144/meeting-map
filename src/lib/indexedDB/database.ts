@@ -7,7 +7,7 @@ import { DB_NAME, storeNames } from "./constants";
 
 function openDataBase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const openRequest = indexedDB.open(DB_NAME, 5);
+    const openRequest = indexedDB.open(DB_NAME, 6);
 
     openRequest.onupgradeneeded = function (event) {
       const oldVersion = event.oldVersion;
@@ -154,6 +154,26 @@ export async function saveDestination(payload: DestinationCache) {
       resolve();
     };
     req.onerror = function () {
+      reject(this.error);
+    };
+  });
+}
+
+export async function restoreDestination(
+  payloads: DestinationCache[],
+): Promise<void> {
+  const db = await openDataBase();
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction([storeNames.DESTINATIONS], "readwrite");
+    const store = tx.objectStore(storeNames.DESTINATIONS);
+
+    store.clear();
+    payloads.forEach((x) => store.put(x));
+    tx.oncomplete = () => resolve();
+    tx.onerror = function () {
+      reject(this.error);
+    };
+    tx.onabort = function () {
       reject(this.error);
     };
   });

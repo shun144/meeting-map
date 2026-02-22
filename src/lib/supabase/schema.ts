@@ -47,6 +47,7 @@ export type Database = {
           lng: number
           map_id: string
           title: string | null
+          updated_at: string
         }
         Insert: {
           created_at?: string
@@ -55,6 +56,7 @@ export type Database = {
           lng: number
           map_id: string
           title?: string | null
+          updated_at?: string
         }
         Update: {
           created_at?: string
@@ -63,6 +65,7 @@ export type Database = {
           lng?: number
           map_id?: string
           title?: string | null
+          updated_at?: string
         }
         Relationships: [
           {

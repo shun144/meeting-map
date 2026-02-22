@@ -28,7 +28,7 @@ export const toDTO = (
   }
 
   const baseDTO: DestinationDTO = {
-    id: destination.id === 0 ? Date.now() : destination.id,
+    id: destination.id,
     title: destination.title,
     lat,
     lng,

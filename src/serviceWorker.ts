@@ -8,8 +8,8 @@ import {
   fetchAllDestinations,
   fetchMaps,
   fetchPMTiles,
+  restoreDestination,
   restoreMaps,
-  saveDestinations,
   savePMTiles,
 } from "./lib/indexedDB/database";
 import { supabase } from "./lib/supabase/supabaseClient";
@@ -108,11 +108,9 @@ async function handleMapsRequest(event: FetchEvent) {
     }
 
     const serverMetaStr = serverMeta
-      ? serverMeta
-          .map((x) => `${x.id}${x.updated_at}`)
-          .sort()
-          .join()
-      : "";
+      .map((x) => `${x.id}${x.updated_at}`)
+      .sort()
+      .join();
 
     const cachedMetaStr = cached
       .map((x) => `${x.id}${x.updated_at}`)
@@ -135,6 +133,7 @@ async function handleMapsRequest(event: FetchEvent) {
   event.waitUntil(
     (async () => {
       const payloads = (await clonedRes.json()) as MapCache[];
+      // DBとキャッシュデータの整合性が一致するようにキャッシュをリストア
       await restoreMaps(payloads).catch((error) => console.error(error));
     })(),
   );
@@ -232,16 +231,41 @@ async function handleDestinationRequest(
   );
 
   if (cached.length > 0) {
-    // キャッシュヒットしたら返す
     const headers = new Headers({
       "Content-Type": "application/json; charset=utf-8",
       "x-cache-source": "indexeddb",
     });
-    const response = new Response(JSON.stringify(cached), {
-      status: 200,
-      headers,
-    });
-    return response;
+
+    const { data: serverMeta, error } = await supabase
+      .from("destination")
+      .select("id,updated_at");
+
+    if (error) {
+      // fetchエラーの場合キャッシュを返す(オフライン対応)
+      return new Response(JSON.stringify(cached), {
+        status: 200,
+        headers,
+      });
+    }
+
+    const serverMetaStr = serverMeta
+      .map((x) => `${x.id}${x.updated_at}`)
+      .sort()
+      .join();
+
+    const cachedMetaStr = cached
+      .map((x) => `${x.id}${x.updated_at}`)
+      .sort()
+      .join();
+
+    // キャッシュとsupabaseの保持情報が同じ場合キャッシュを返す
+    // 比較はidとupdated_atで行う
+    if (serverMetaStr === cachedMetaStr) {
+      return new Response(JSON.stringify(cached), {
+        status: 200,
+        headers,
+      });
+    }
   }
 
   const orgRes = await fetch(event.request);
@@ -250,17 +274,10 @@ async function handleDestinationRequest(
   const clonedRes = orgRes.clone();
   event.waitUntil(
     (async () => {
-      const destinations = (await clonedRes.json()) as Omit<
-        DestinationCache,
-        "map_id"
-      >[];
+      const payloads = (await clonedRes.json()) as DestinationCache[];
 
-      const payloads = destinations.map((x) => ({
-        map_id,
-        ...x,
-      }));
-
-      await saveDestinations(payloads).catch((error) => console.error(error));
+      // DBとキャッシュデータの整合性が一致するようにキャッシュをリストア
+      await restoreDestination(payloads).catch((error) => console.error(error));
     })(),
   );
 

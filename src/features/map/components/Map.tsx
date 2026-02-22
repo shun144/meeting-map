@@ -3,8 +3,11 @@ import { type DestinationRepository } from "@/features/map/domains/DestinationRe
 import SupabaseDestinationRepository from "@/features/map/infrastructure/SupabaseDestinationRepository";
 import { useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router";
-import useDestinationMarkerManager from "../hooks/useDestinationMarkerManager";
 import { toast } from "react-toastify";
+import { useMapStore } from "@/store/useMapStore";
+import { Destination } from "../domains/Destination";
+import DestinationMarker from "../domains/DestinationMarker";
+import useDestinationMarkerManager from "../hooks/useDestinationMarkerManager";
 
 const Map = () => {
   const { mapId } = useParams();
@@ -22,34 +25,27 @@ interface Props {
 
 const BaseMap = ({ mapId, repo }: Props) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-
-  const { markers, createMarker, cleanup } = useDestinationMarkerManager(repo);
-  const { mapState } = useMapEvent(
-    mapContainerRef,
-    mapId,
-    createMarker,
-    cleanup,
-  );
-
-  useEffect(() => {
-    console.log(markers.length);
-    console.log(markers.map((x) => x.id).join(" "));
-  }, [markers]);
+  const { mapState } = useMapEvent(mapContainerRef, mapId, repo);
+  const { addMarkers } = useMapStore.getState();
+  const { createDestinationMarker } = useDestinationMarkerManager(repo);
 
   useEffect(() => {
     if (!mapState) return;
-
     const load = async () => {
       try {
         const res = await repo.findAll();
-        res.forEach((x) => createMarker(mapState, x.id, x.latlng, x.title));
+        res.forEach((destination) => {
+          const dm = createDestinationMarker(destination, "SAVED");
+          dm.element.addTo(mapState);
+          addMarkers(dm);
+        });
       } catch (error) {
         console.error(error);
         toast.error("目的地の取得に失敗しました");
       }
     };
     load();
-  }, [mapState, repo, createMarker]);
+  }, [mapState, repo]);
 
   return <div ref={mapContainerRef} className="h-full w-full" />;
 };

@@ -7,6 +7,7 @@ import {
   saveDestination as saveCachedDestination,
   deleteDestination as deleteCachedDestination,
 } from "@/lib/indexedDB/database";
+import { markerMaxLength } from "@/features/map/constants";
 
 export default class SupabaseDestinationRepository implements DestinationRepository {
   #mapId: string;
@@ -14,18 +15,74 @@ export default class SupabaseDestinationRepository implements DestinationReposit
     this.#mapId = mapId;
   }
 
-  async save(destination: Destination): Promise<void> {
-    const dto = toDTO(destination, this.#mapId);
-    const { error } = await supabase.from("destination").upsert(dto);
+  async add(destination: Destination): Promise<void> {
+    const { data: existing } = await supabase
+      .from("destination")
+      .select("id")
+      .eq("map_id", this.#mapId);
 
-    if (error) {
-      throw new Error(`目的地の保存に失敗しました: ${error.message}`);
+    if (existing && existing.length >= markerMaxLength) {
+      throw new Error(
+        `すでに目的地作成上限数（${markerMaxLength}）に達しています。画面を更新してください`,
+      );
     }
 
-    await saveCachedDestination(dto).catch((e) =>
+    const dto = toDTO(destination, this.#mapId);
+    const { data, error } = await supabase
+      .from("destination")
+      .upsert(dto)
+      .select("map_id,id,title,lat,lng,updated_at")
+      .single();
+
+    if (error) throw new Error(`目的地の保存に失敗しました: ${error.message}`);
+    await saveCachedDestination(data).catch((e) =>
       console.error("目的地のキャッシュ保存に失敗しました", e),
     );
   }
+
+  async update(destination: Destination): Promise<void> {
+    const dto = toDTO(destination, this.#mapId);
+    const { data, error } = await supabase
+      .from("destination")
+      .update(dto)
+      .eq("id", destination.id)
+      .select("map_id,id,title,lat,lng,updated_at")
+      .single();
+
+    if (error) throw new Error(`目的地の更新に失敗しました: ${error.message}`);
+    await saveCachedDestination(data).catch((e) =>
+      console.error("目的地のキャッシュ保存に失敗しました", e),
+    );
+  }
+
+  // async save(destination: Destination): Promise<void> {
+  //   const dto = toDTO(destination, this.#mapId);
+
+  //   const { data: count } = await supabase
+  //     .from("destination")
+  //     .select("id")
+  //     .eq("map_id", this.#mapId);
+
+  //   if (count && count.length > markerMaxLength) {
+  //     throw new Error(
+  //       `すでに目的地作成上限数（${markerMaxLength}）に達しています。画面を更新してください`,
+  //     );
+  //   }
+
+  //   const { data, error } = await supabase
+  //     .from("destination")
+  //     .upsert(dto)
+  //     .select("map_id,id,title,lat,lng,updated_at")
+  //     .single();
+
+  //   if (error) {
+  //     throw new Error(`目的地の保存に失敗しました: ${error.message}`);
+  //   }
+
+  //   await saveCachedDestination(data).catch((e) =>
+  //     console.error("目的地のキャッシュ保存に失敗しました", e),
+  //   );
+  // }
 
   async findAll(): Promise<Destination[]> {
     const { data, error } = await supabase
