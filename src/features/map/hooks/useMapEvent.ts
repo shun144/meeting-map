@@ -55,10 +55,7 @@ const useMapEvent = (
 
       geolocateControl.on("geolocate", (event) => {
         const heading = event.coords.heading ?? 0;
-        const el = userMarker.getElement();
-        el.style.transform = `rotate(${heading}deg)`;
-
-        // userMarker.setRotation(heading);
+        userMarker.setRotation(heading);
 
         const newPos = new maplibregl.LngLat(
           event.coords.longitude,
