@@ -5,7 +5,7 @@ import { ToastContainer } from "react-toastify";
 
 const Layout = () => {
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-dvh flex flex-col overflow-hidden">
       <Header />
       <div className="flex-1 overflow-hidden">
         <Outlet />
