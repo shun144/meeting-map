@@ -45,6 +45,10 @@ export default class DestinationMarker {
       onChangeInput(title);
     });
 
+    inputElem.addEventListener("focusout", () => {
+      window.scrollTo(0, 0);
+    });
+
     // 削除ボタン
     const deleteButton = document.createElement("button");
     deleteButton.className = styles.deleteButton;
@@ -67,8 +71,6 @@ export default class DestinationMarker {
 
     const popupElem = new maplibregl.Popup({
       closeButton: false,
-      focusAfterOpen: false,
-      // maxWidth: "none",
       className: styles.popup,
     });
 
