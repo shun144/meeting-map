@@ -1,7 +1,11 @@
 @reference "@styles/index.css";
 
+.popup :global(.maplibregl-popup-content) {
+  width: 280px;
+}
+
 .popupContainer {
-  min-width: 220px;
+  width: 100%;
 }
 
 .inputWrapper {
@@ -12,7 +16,7 @@
 
 .popupInput {
   flex: 1;
-  padding: 8px 40px 8px 12px; /* 右側に削除ボタンのスペースを確保 */
+  padding: 8px 40px 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
@@ -55,10 +59,9 @@
 .deleteButton svg {
   width: 16px;
   height: 16px;
-  pointer-events: none; /* クリックイベントがSVGに取られないように */
+  pointer-events: none;
 }
 
-/* モバイル向けのタッチ対応 */
 @media (hover: none) and (pointer: coarse) {
   .deleteButton {
     width: 36px;
@@ -74,14 +77,101 @@
 
   .popupInput {
     padding: 10px 44px 10px 12px;
-    font-size: 16px; /* iOSでズームを防ぐため */
+    font-size: 16px;
   }
 }
 
-/* タッチデバイスでホバー効果を無効化 */
 @media (hover: none) {
   .deleteButton:hover {
     background-color: transparent;
     color: #dc3545;
   }
 }
+
+/* @reference "@styles/index.css";
+
+.popupContainer {
+  min-width: 260px;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  background: red;
+  width: 100%;
+}
+
+.popupInput {
+  flex: 1;
+  padding: 8px 40px 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.popupInput:focus {
+  border-color: #4285f4;
+}
+
+.deleteButton {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: #dc3545;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteButton:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #c82333;
+}
+
+.deleteButton:active {
+  background-color: rgba(220, 53, 69, 0.2);
+  transform: scale(0.95);
+}
+
+.deleteButton svg {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .deleteButton {
+    width: 36px;
+    height: 36px;
+    top: 2px;
+    right: 2px;
+  }
+
+  .deleteButton svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .popupInput {
+    padding: 10px 44px 10px 12px;
+    font-size: 16px;
+  }
+}
+
+@media (hover: none) {
+  .deleteButton:hover {
+    background-color: transparent;
+    color: #dc3545;
+  }
+} */
