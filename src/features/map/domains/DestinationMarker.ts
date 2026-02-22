@@ -46,11 +46,17 @@ export default class DestinationMarker {
     });
 
     inputElem.addEventListener("focusout", () => {
-      setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: "instant" });
-      }, 100);
       this.element.togglePopup();
+      setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      }, 0);
     });
+    // inputElem.addEventListener("focusout", () => {
+    //   setTimeout(() => {
+    //     window.scrollTo({ top: 0, behavior: "instant" });
+    //   }, 100);
+    //   this.element.togglePopup();
+    // });
 
     // 削除ボタン
     const deleteButton = document.createElement("button");
