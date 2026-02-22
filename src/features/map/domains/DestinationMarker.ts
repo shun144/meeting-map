@@ -72,6 +72,7 @@ export default class DestinationMarker {
     const popupElem = new maplibregl.Popup({
       closeButton: false,
       className: styles.popup,
+      focusAfterOpen: false,
     });
 
     popupElem.setDOMContent(popupContainer);
