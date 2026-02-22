@@ -46,7 +46,9 @@ export default class DestinationMarker {
     });
 
     inputElem.addEventListener("focusout", () => {
-      window.scrollTo(0, 0);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 100);
     });
 
     // 削除ボタン
