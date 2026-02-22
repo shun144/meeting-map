@@ -30,7 +30,7 @@ export const createUserMarkerElement = () => {
       fill="url(#beamGrad)"
     />
 
-    <!-- 波紋rではなくscaleで拡大 -->
+    <!-- 波紋 rではなくscaleで拡大 -->
     <circle class="ripple-1" cx="40" cy="40" r="10" fill="none" stroke="#4285F4" stroke-width="1.5" opacity="0"/>
     <circle class="ripple-2" cx="40" cy="40" r="10" fill="none" stroke="#4285F4" stroke-width="1.5" opacity="0"/>
     <circle class="ripple-3" cx="40" cy="40" r="10" fill="none" stroke="#4285F4" stroke-width="1.5" opacity="0"/>

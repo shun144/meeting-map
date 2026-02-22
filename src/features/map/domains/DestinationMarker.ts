@@ -15,6 +15,7 @@ export default class DestinationMarker {
       color: "#4285F4",
       className: styles.marker,
     });
+
     this.element.setLngLat(destination.latlng);
     this.element
       .getElement()

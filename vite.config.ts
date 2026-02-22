@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import paths from "vite-tsconfig-paths";
@@ -59,6 +60,11 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: "./vitest.setup.ts",
+  },
   resolve: {
     alias: {
       "@styles": path.resolve(__dirname, "./src/styles"),

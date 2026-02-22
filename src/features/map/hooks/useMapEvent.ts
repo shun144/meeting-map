@@ -56,7 +56,6 @@ const useMapEvent = (
       mapInstance.addControl(geolocateControl);
 
       const startCompass = async () => {
-        // iOSの権限リクエスト
         if (
           typeof (DeviceOrientationEvent as any).requestPermission ===
           "function"
@@ -64,6 +63,7 @@ const useMapEvent = (
           const permission = await (
             DeviceOrientationEvent as any
           ).requestPermission();
+
           if (permission !== "granted") return;
         }
 
@@ -75,9 +75,6 @@ const useMapEvent = (
       };
 
       geolocateControl.on("geolocate", (event) => {
-        // const heading = event.coords.heading ?? 0;
-        // userMarker.setRotation(heading);
-
         const newPos = new maplibregl.LngLat(
           event.coords.longitude,
           event.coords.latitude,
@@ -100,8 +97,8 @@ const useMapEvent = (
         currentPos = newPos;
       });
 
-      geolocateControl.on("trackuserlocationstart", () => {
-        startCompass();
+      geolocateControl.on("trackuserlocationstart", async () => {
+        await startCompass();
         userMarker.setOpacity("1");
       });
 
