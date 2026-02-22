@@ -305,45 +305,41 @@ export const disneylandMapStyle: MapSrcStyle = {
       },
 
       // アトラクション名ラベル
-      {
-        id: "railway-label",
-        source: "tdl",
-        "source-layer": "disneyland",
-        type: "symbol",
-        filter: [
-          "all",
-          ["==", "tourism", "attraction"],
-          // ["==", "route", "train"],
-        ],
-        minzoom: 16,
-        layout: {
-          "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
-          "text-font": ["Noto Sans Bold"],
-          "text-size": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            16,
-            11,
-            17,
-            12,
-            18,
-            13,
-            19,
-            14,
-          ],
-          "text-anchor": "center",
-          "text-max-width": 8,
-        },
-        paint: {
-          // "text-color": "#d32f2f",
-          "text-color": "blue",
-          "text-halo-color": "#ffffff",
-          "text-halo-width": 1.5,
-        },
-      },
+      // {
+      //   id: "railway-label",
+      //   source: "tdl",
+      //   "source-layer": "disneyland",
+      //   type: "symbol",
+      //   filter: ["all", ["==", "tourism", "attraction"]],
+      //   minzoom: 16,
+      //   layout: {
+      //     "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
+      //     "text-font": ["Noto Sans Bold"],
+      //     "text-size": [
+      //       "interpolate",
+      //       ["linear"],
+      //       ["zoom"],
+      //       16,
+      //       11,
+      //       17,
+      //       12,
+      //       18,
+      //       13,
+      //       19,
+      //       14,
+      //     ],
+      //     "text-anchor": "center",
+      //     "text-max-width": 8,
+      //   },
+      //   paint: {
+      //     "text-color": "#d32f2f",
+      //     // "text-color": "blue",
+      //     "text-halo-color": "#ffffff",
+      //     "text-halo-width": 1.5,
+      //   },
+      // },
 
-      // ファストフードラベル
+      // ファストフード店名
       {
         id: "fastfood-labels",
         source: "tdl",

@@ -21,6 +21,8 @@ export default class DestinationMarker {
       .getElement()
       .setAttribute("data-destination-marker-id", String(destination.id));
 
+    this.element.getElement().style.cursor = "pointer";
+
     // ポップアップのコンテナを作成
     const popupContainer = document.createElement("div");
     popupContainer.className = styles.popupContainer;
@@ -69,5 +71,16 @@ export default class DestinationMarker {
 
     popupElem.setDOMContent(popupContainer);
     this.element.setPopup(popupElem);
+  }
+
+  dummyDelete() {
+    this.element.togglePopup();
+    this.element.setOpacity("0");
+    this.element.getElement().style.pointerEvents = "none";
+  }
+
+  restoreFromDummyDelete() {
+    this.element.setOpacity("1");
+    this.element.getElement().style.pointerEvents = "auto";
   }
 }

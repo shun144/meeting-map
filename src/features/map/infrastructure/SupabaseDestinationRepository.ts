@@ -55,35 +55,6 @@ export default class SupabaseDestinationRepository implements DestinationReposit
     );
   }
 
-  // async save(destination: Destination): Promise<void> {
-  //   const dto = toDTO(destination, this.#mapId);
-
-  //   const { data: count } = await supabase
-  //     .from("destination")
-  //     .select("id")
-  //     .eq("map_id", this.#mapId);
-
-  //   if (count && count.length > markerMaxLength) {
-  //     throw new Error(
-  //       `すでに目的地作成上限数（${markerMaxLength}）に達しています。画面を更新してください`,
-  //     );
-  //   }
-
-  //   const { data, error } = await supabase
-  //     .from("destination")
-  //     .upsert(dto)
-  //     .select("map_id,id,title,lat,lng,updated_at")
-  //     .single();
-
-  //   if (error) {
-  //     throw new Error(`目的地の保存に失敗しました: ${error.message}`);
-  //   }
-
-  //   await saveCachedDestination(data).catch((e) =>
-  //     console.error("目的地のキャッシュ保存に失敗しました", e),
-  //   );
-  // }
-
   async findAll(): Promise<Destination[]> {
     const { data, error } = await supabase
       .from("destination")

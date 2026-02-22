@@ -53,8 +53,19 @@ const useDestinationMarkerManager = (repo: DestinationRepository) => {
         if (title !== "" && !confirm("この目的地を削除しますか？")) {
           return;
         }
-        repo.delete(dm.destination.id);
-        filterMarkers(dm.destination.id);
+
+        dm.dummyDelete();
+        repo
+          .delete(dm.destination.id)
+          .then(() => filterMarkers(dm.destination.id))
+          .catch((error) => {
+            const message =
+              error instanceof Error && error.message
+                ? error.message
+                : "目的地の削除に失敗しました";
+            toast.error(message);
+            dm.restoreFromDummyDelete();
+          });
       };
 
       const dm = new DestinationMarker(

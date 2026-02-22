@@ -37,8 +37,6 @@ const useMapEvent = (
     mapInstance.on("load", () => {
       setMapState(mapInstance);
 
-      mapInstance.addControl(new maplibregl.NavigationControl());
-
       const geolocateControl = new maplibregl.GeolocateControl({
         positionOptions: {
           enableHighAccuracy: true,
@@ -160,14 +158,20 @@ const useMapEvent = (
         if (isTouch) return;
         restartTimer();
       });
-
       // タイマーリセット（タッチ操作/マウス操作）
       mapInstance.on("touchmove", () => resetTimer());
       mapInstance.on("touchcancel", () => resetTimer());
-      mapInstance.on("movestart", () => {
+      mapInstance.on("movestart", (event) => {
+        if (!(event.originalEvent instanceof WheelEvent)) {
+          mapInstance.getCanvas().style.cursor = "grabbing";
+        }
         if (isTouch) return;
         resetTimer();
       });
+    });
+
+    mapInstance.on("moveend", () => {
+      mapInstance.getCanvas().style.cursor = "pointer";
     });
 
     mapInstance.on("styledata", () => addImages(mapInstance));
