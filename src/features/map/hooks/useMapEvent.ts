@@ -51,7 +51,7 @@ const useMapEvent = (
           duration: 0,
         },
       });
-      mapInstance.addControl(geolocateControl);
+      mapInstance.addControl(geolocateControl, "bottom-right");
 
       const startCompass = async () => {
         if (
