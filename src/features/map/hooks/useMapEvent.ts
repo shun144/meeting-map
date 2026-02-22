@@ -75,8 +75,8 @@ const useMapEvent = (
       };
 
       geolocateControl.on("geolocate", (event) => {
-        const heading = event.coords.heading ?? 0;
-        userMarker.setRotation(heading);
+        // const heading = event.coords.heading ?? 0;
+        // userMarker.setRotation(heading);
 
         const newPos = new maplibregl.LngLat(
           event.coords.longitude,
