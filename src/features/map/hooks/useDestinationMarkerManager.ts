@@ -26,11 +26,8 @@ const useDestinationMarkerManager = (repo: DestinationRepository) => {
               dm.status = "SAVED";
             })
             .catch((error) => {
-              const message =
-                error instanceof Error
-                  ? error.message
-                  : "目的地の保存に失敗しました";
-              toast.error(message);
+              console.error(error.message);
+              toast.error("目的地の保存に失敗しました");
               dm.element.setOpacity("0.5");
             });
           return;
@@ -40,11 +37,8 @@ const useDestinationMarkerManager = (repo: DestinationRepository) => {
           .update(dm.destination)
           .then(() => updateMarkers(dm))
           .catch((error) => {
-            const message =
-              error instanceof Error
-                ? error.message
-                : "目的地の更新に失敗しました";
-            toast.error(message);
+            console.error(error.message);
+            toast.error("目的地の更新に失敗しました");
             dm.element.setOpacity("0.5");
           });
       };

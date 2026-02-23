@@ -5,8 +5,8 @@ const PMTILES_SRC =
 
 export const disneylandMapStyle: MapSrcStyle = {
   src: PMTILES_SRC,
-  center: [139.8778194, 35.6329007],
-  zoom: 18,
+  center: [139.8786137, 35.6339284],
+  zoom: 17,
   maxZoom: 20,
   minZoom: 15,
   sw: { lng: 139.8564, lat: 35.6122 },
