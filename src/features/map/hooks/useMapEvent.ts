@@ -14,6 +14,7 @@ const useMapEvent = (
   mapContainerRef: React.RefObject<HTMLDivElement | null>,
   mapId: string | undefined,
   repo: DestinationRepository,
+  setIsMapReady: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
   const timerId = useRef<number | undefined>(undefined);
   const timer = useRef<number>(0);
@@ -189,6 +190,10 @@ const useMapEvent = (
     });
 
     mapInstance.on("styledata", () => addImages(mapInstance));
+
+    mapInstance.on("idle", () => {
+      setIsMapReady(true);
+    });
 
     return () => {
       if (timerId.current) {

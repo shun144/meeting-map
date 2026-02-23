@@ -1,11 +1,12 @@
-import useMapEvent from "@/features/map/hooks/useMapEvent";
 import { type DestinationRepository } from "@/features/map/domains/DestinationRepository";
+import useMapEvent from "@/features/map/hooks/useMapEvent";
 import SupabaseDestinationRepository from "@/features/map/infrastructure/SupabaseDestinationRepository";
-import { useEffect, useMemo, useRef } from "react";
-import { useNavigate, useParams } from "react-router";
-import { toast } from "react-toastify";
 import { useMapStore } from "@/store/useMapStore";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router";
+import { toast } from "react-toastify";
 import useDestinationMarkerManager from "../hooks/useDestinationMarkerManager";
+import MapLoading from "./MapLoading";
 
 const Map = () => {
   const { mapId } = useParams();
@@ -22,8 +23,9 @@ interface Props {
 }
 
 const BaseMap = ({ mapId, repo }: Props) => {
+  const [isMapReady, setIsMapReady] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const { mapState } = useMapEvent(mapContainerRef, mapId, repo);
+  const { mapState } = useMapEvent(mapContainerRef, mapId, repo, setIsMapReady);
   const { addMarkers } = useMapStore.getState();
   const { createDestinationMarker } = useDestinationMarkerManager(repo);
 
@@ -45,7 +47,18 @@ const BaseMap = ({ mapId, repo }: Props) => {
     load();
   }, [mapState, repo]);
 
-  return <div ref={mapContainerRef} className="h-full w-full" />;
+  return (
+    <div className="relative h-full w-full">
+      <div ref={mapContainerRef} className="h-full w-full" />
+      <div
+        className={`absolute inset-0 flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 transition-opacity duration-300 ${
+          isMapReady ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
+        <MapLoading />
+      </div>
+    </div>
+  );
 };
 
 export default Map;

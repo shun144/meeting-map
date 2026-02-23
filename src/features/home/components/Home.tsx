@@ -3,7 +3,7 @@ import { memo, useEffect, useMemo, useState } from "react";
 import CacheClearSection from "./CacheClearSection";
 import Cards from "./Cards";
 import HomeHeader from "./HomeHeader";
-import Loading from "./Loading";
+import HomeLoading from "./HomeLoading";
 import NoData from "./NoData";
 
 export interface MapDTO {
@@ -44,7 +44,7 @@ const Home = () => {
             )}
           </>
         ) : (
-          <Loading />
+          <HomeLoading />
         )}
 
         <CacheClearSection
