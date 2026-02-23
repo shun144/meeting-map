@@ -28,7 +28,7 @@ export const disneylandMapStyle: MapSrcStyle = {
         id: "background",
         type: "background",
         paint: {
-          "background-color": "#deebf7",
+          "background-color": "#f9f0d8",
         },
       },
 
@@ -44,7 +44,7 @@ export const disneylandMapStyle: MapSrcStyle = {
           ["==", "tourism", "theme_park"],
         ],
         paint: {
-          "fill-color": "#dddde8",
+          "fill-color": "#e8dcc8",
           "fill-opacity": 1,
         },
       },
@@ -57,7 +57,7 @@ export const disneylandMapStyle: MapSrcStyle = {
         type: "fill",
         filter: ["==", "natural", "water"],
         paint: {
-          "fill-color": "#aad3df",
+          "fill-color": "#5bb8f5",
           "fill-opacity": 1,
         },
       },
@@ -75,7 +75,7 @@ export const disneylandMapStyle: MapSrcStyle = {
           ["==", "bridge", "yes"],
         ],
         paint: {
-          "fill-color": "#dddde8",
+          "fill-color": "#f5e6c8",
           "fill-opacity": 1,
         },
       },
@@ -92,7 +92,7 @@ export const disneylandMapStyle: MapSrcStyle = {
           ["in", "leisure", "forest", "grass", "park", "garden"],
         ],
         paint: {
-          "fill-color": "#d4edda",
+          "fill-color": "#b8e0a0",
           "fill-opacity": 1,
         },
       },
@@ -109,7 +109,7 @@ export const disneylandMapStyle: MapSrcStyle = {
           ["==", "leisure", "garden"],
         ],
         paint: {
-          "fill-color": "#d4edda",
+          "fill-color": "#b8e0a0",
         },
       },
 
@@ -122,7 +122,7 @@ export const disneylandMapStyle: MapSrcStyle = {
         filter: ["has", "building"],
         minzoom: 15,
         paint: {
-          "fill-color": "#ffffe5",
+          "fill-color": "#fde8b0",
           "fill-opacity": 1,
         },
       },
@@ -136,7 +136,7 @@ export const disneylandMapStyle: MapSrcStyle = {
         filter: ["has", "building"],
         minzoom: 15,
         paint: {
-          "line-color": "#bdbdbd",
+          "line-color": "#d4a84b",
           "line-width": 1,
         },
       },
@@ -298,46 +298,11 @@ export const disneylandMapStyle: MapSrcStyle = {
           "text-max-width": 8,
         },
         paint: {
-          "text-color": "#d32f2f",
-          "text-halo-color": "#ffffff",
-          "text-halo-width": 1.5,
+          "text-color": "#c0392b",
+          "text-halo-color": "#fff9e6",
+          "text-halo-width": 2,
         },
       },
-
-      // アトラクション名ラベル
-      // {
-      //   id: "railway-label",
-      //   source: "tdl",
-      //   "source-layer": "disneyland",
-      //   type: "symbol",
-      //   filter: ["all", ["==", "tourism", "attraction"]],
-      //   minzoom: 16,
-      //   layout: {
-      //     "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
-      //     "text-font": ["Noto Sans Bold"],
-      //     "text-size": [
-      //       "interpolate",
-      //       ["linear"],
-      //       ["zoom"],
-      //       16,
-      //       11,
-      //       17,
-      //       12,
-      //       18,
-      //       13,
-      //       19,
-      //       14,
-      //     ],
-      //     "text-anchor": "center",
-      //     "text-max-width": 8,
-      //   },
-      //   paint: {
-      //     "text-color": "#d32f2f",
-      //     // "text-color": "blue",
-      //     "text-halo-color": "#ffffff",
-      //     "text-halo-width": 1.5,
-      //   },
-      // },
 
       // ファストフード店名
       {
@@ -368,8 +333,8 @@ export const disneylandMapStyle: MapSrcStyle = {
           "text-max-width": 10,
         },
         paint: {
-          "text-color": "#d94801",
-          "text-halo-color": "#ffffff",
+          "text-color": "#e05c00",
+          "text-halo-color": "#fff9e6",
           "text-halo-width": 1.5,
         },
       },
@@ -403,8 +368,8 @@ export const disneylandMapStyle: MapSrcStyle = {
           "text-max-width": 10,
         },
         paint: {
-          "text-color": "black",
-          "text-halo-color": "#ffffff",
+          "text-color": "#7b4f2e",
+          "text-halo-color": "#fff9e6",
           "text-halo-width": 1.5,
         },
       },
@@ -438,8 +403,8 @@ export const disneylandMapStyle: MapSrcStyle = {
           "text-max-width": 10,
         },
         paint: {
-          "text-color": "#54278f",
-          "text-halo-color": "#ffffff",
+          "text-color": "#7b2d8b",
+          "text-halo-color": "#fff9e6",
           "text-halo-width": 1.5,
         },
       },
@@ -473,47 +438,11 @@ export const disneylandMapStyle: MapSrcStyle = {
           "text-max-width": 10,
         },
         paint: {
-          "text-color": "#e31a1c",
-          "text-halo-color": "#ffffff",
+          "text-color": "#e05c00",
+          "text-halo-color": "#fff9e6",
           "text-halo-width": 1.5,
         },
       },
-
-      // // その他施設名（小さめ・OSM標準）
-      // {
-      //   id: "labels-facilities",
-      //   source: "tdl",
-      //   "source-layer": "disneyland",
-      //   type: "symbol",
-      //   filter: [
-      //     "all",
-      //     ["has", "name"],
-      //     ["!=", "tourism", "attraction"],
-      //     ["!has", "amenity"],
-      //     ["!has", "shop"],
-      //   ],
-      //   minzoom: 18,
-      //   layout: {
-      //     "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
-      //     "text-font": ["Noto Sans Regular"],
-      //     "text-size": [
-      //       "interpolate",
-      //       ["linear"],
-      //       ["zoom"],
-      //       18,
-      //       8, // z18: 8px
-      //       19,
-      //       9, // z19: 9px
-      //     ],
-      //     "text-anchor": "center",
-      //     "text-max-width": 10,
-      //   },
-      //   paint: {
-      //     "text-color": "red",
-      //     "text-halo-color": "#ffffff",
-      //     "text-halo-width": 1,
-      //   },
-      // },
     ],
   },
 };
