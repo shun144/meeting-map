@@ -141,6 +141,32 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
+      // リバー鉄道の線路
+      {
+        id: "railway-narrow-gauge-bg",
+        source: "tdl",
+        "source-layer": "disneyland",
+        type: "line",
+        filter: ["==", "railway", "narrow_gauge"],
+        paint: {
+          "line-color": "#8B4513",
+          "line-width": 3,
+          "line-opacity": 0.6,
+        },
+      },
+      {
+        id: "railway-narrow-gauge",
+        source: "tdl",
+        "source-layer": "disneyland",
+        type: "line",
+        filter: ["==", "railway", "narrow_gauge"],
+        paint: {
+          "line-color": "#D4A853",
+          "line-width": 1.5,
+          "line-opacity": 0.7,
+        },
+      },
+
       // その他
       {
         id: "roads-other",
@@ -276,7 +302,16 @@ export const disneylandMapStyle: MapSrcStyle = {
         source: "tdl",
         "source-layer": "disneyland",
         type: "symbol",
-        filter: ["any", ["has", "attraction"], ["==", "tourism", "attraction"]],
+        filter: [
+          "any",
+          ["has", "attraction"],
+          [
+            "all",
+            ["==", "tourism", "attraction"],
+            ["!=", "type", "route"], // リバー鉄道の路線にラベル名がつくのを回避
+          ],
+          ["==", "railway", "station"],
+        ],
         minzoom: 16,
         layout: {
           "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
@@ -296,9 +331,12 @@ export const disneylandMapStyle: MapSrcStyle = {
           ],
           "text-anchor": "center",
           "text-max-width": 8,
+          // "text-allow-overlap": true, // ← 追加
+          // "text-ignore-placement": true, // ← 追加
         },
         paint: {
           "text-color": "#c0392b",
+          // "text-color": "blue",
           "text-halo-color": "#fff9e6",
           "text-halo-width": 2,
         },
