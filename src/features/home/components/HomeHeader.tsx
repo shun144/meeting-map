@@ -28,6 +28,9 @@ const HomeHeader = () => {
       <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800 mb-1 sm:mb-2 px-2">
         地図を選択してください
       </h1>
+      <p className="text-xs sm:text-sm text-gray-400 mt-2 px-4">
+        オフラインで地図を利用するには、事前にオンライン環境で一度地図を表示しておく必要があります。
+      </p>
     </div>
   );
 };
