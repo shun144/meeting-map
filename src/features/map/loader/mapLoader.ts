@@ -6,6 +6,6 @@ export const mapLoader = async (
 ): Promise<void> => {
   const mapData = await repo.find(mapId);
   if (!mapData) {
-    throw new Response("Not Found", { status: 404 });
+    throw new Response("Map Not Found", { status: 404 });
   }
 };

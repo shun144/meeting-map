@@ -8,6 +8,7 @@ import type { DestinationRepository } from "../domains/DestinationRepository";
 import useDestinationMarkerManager from "./useDestinationMarkerManager";
 import { toast } from "react-toastify";
 import { createUserMarkerElement } from "../utils/userMarker";
+import { useNavigate } from "react-router";
 
 const useMapEvent = (
   mapContainerRef: React.RefObject<HTMLDivElement | null>,
@@ -17,8 +18,8 @@ const useMapEvent = (
   const timerId = useRef<number | undefined>(undefined);
   const timer = useRef<number>(0);
   const [mapState, setMapState] = useState<maplibregl.Map | null>(null);
-
   const { createDestinationMarker } = useDestinationMarkerManager(repo);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!mapContainerRef.current || !mapId) return;
@@ -32,6 +33,17 @@ const useMapEvent = (
       element: createUserMarkerElement(),
       rotationAlignment: "map", // 地図の向き先を変えるとユーザーアイコンの向き先も変える
       pitchAlignment: "map",
+    });
+
+    mapInstance.on("error", (event) => {
+      if (event.error.message !== "Failed to fetch") return;
+      if (!navigator.onLine) {
+        navigate("/map-not-found");
+      } else {
+        toast.error("地図データの読み込みに失敗しました", {
+          toastId: "map-fetch-error",
+        });
+      }
     });
 
     mapInstance.on("load", () => {

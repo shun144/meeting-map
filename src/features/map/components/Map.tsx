@@ -2,7 +2,7 @@ import useMapEvent from "@/features/map/hooks/useMapEvent";
 import { type DestinationRepository } from "@/features/map/domains/DestinationRepository";
 import SupabaseDestinationRepository from "@/features/map/infrastructure/SupabaseDestinationRepository";
 import { useEffect, useMemo, useRef } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { toast } from "react-toastify";
 import { useMapStore } from "@/store/useMapStore";
 import useDestinationMarkerManager from "../hooks/useDestinationMarkerManager";

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 
-export default function NotFound() {
+export default function MapNotFound() {
   const navigate = useNavigate();
 
   return (
@@ -27,10 +27,10 @@ export default function NotFound() {
         <div className="w-10 h-px bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto mb-6" />
 
         <p className="text-indigo-900/80 text-base sm:text-lg font-semibold tracking-widest uppercase mb-2">
-          Page Not Found
+          Map Not Found
         </p>
         <p className="text-indigo-900 text-xs sm:text-sm font-light mb-10">
-          お探しのページは存在しないか、移動した可能性があります
+          地図データが見つかりませんでした
         </p>
 
         <button

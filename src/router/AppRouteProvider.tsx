@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import NotFound from "./NotFound";
 import { MapRepository } from "@/features/map/infrastructure/MapRepository";
 import { mapLoader } from "@/features/map/loader/mapLoader";
+import MapNotFound from "@/features/map/components/MapNotFound";
 
 const repo = new MapRepository();
 const AppRouteProvider = () => {
@@ -16,9 +17,10 @@ const AppRouteProvider = () => {
         {
           path: "map/:mapId",
           Component: Map,
-          errorElement: <NotFound />,
+          errorElement: <MapNotFound />,
           loader: async ({ params }) => mapLoader(repo, params.mapId),
         },
+        { path: "/map-not-found", Component: MapNotFound },
         { path: "*", Component: NotFound },
       ],
     },

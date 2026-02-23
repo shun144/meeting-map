@@ -11,9 +11,7 @@ export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
   const protocol = new Protocol();
   maplibregl.addProtocol("pmtiles", protocol.tile);
   const pmtiles = new PMTiles(src);
-
   const maxBounds = sw && ne ? new maplibregl.LngLatBounds(sw, ne) : undefined;
-
   protocol.add(pmtiles);
   const maplibreglMap = new maplibregl.Map({
     container: mapContainerDiv,
@@ -24,14 +22,6 @@ export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
     maxBounds,
     style,
     doubleClickZoom: false,
-  });
-
-  maplibreglMap.on("error", (event) => {
-    if (event.error.message !== "Failed to fetch") return;
-
-    toast.error("地図データの読み込みに失敗しました", {
-      toastId: "map-fetch-error",
-    });
   });
 
   maplibreglMap.getCanvas().style.cursor = "pointer";
