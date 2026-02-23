@@ -4,9 +4,10 @@ import Map from "@/features/map/components/Map";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import NotFound from "./NotFound";
 import { MapRepository } from "@/features/map/infrastructure/MapRepository";
+import { mapLoader } from "@/features/map/loader/mapLoader";
 
+const repo = new MapRepository();
 const AppRouteProvider = () => {
-  const repo = new MapRepository();
   const router = createBrowserRouter([
     {
       Component: Layout,
@@ -16,12 +17,7 @@ const AppRouteProvider = () => {
           path: "map/:mapId",
           Component: Map,
           errorElement: <NotFound />,
-          loader: async ({ params }) => {
-            const mapData = await repo.find(params.mapId);
-            if (!mapData) {
-              throw new Response("Not Found", { status: 404 });
-            }
-          },
+          loader: async ({ params }) => mapLoader(repo, params.mapId),
         },
         { path: "*", Component: NotFound },
       ],
