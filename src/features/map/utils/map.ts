@@ -22,6 +22,7 @@ export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
     maxBounds,
     style,
     doubleClickZoom: false,
+    hash: true,
   });
 
   maplibreglMap.getCanvas().style.cursor = "pointer";
