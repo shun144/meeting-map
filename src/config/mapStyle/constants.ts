@@ -1,0 +1,1 @@
+export const osmAttribution = `<span>© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> | <a href="https://opendatacommons.org/licenses/odbl/" target="_blank" rel="noopener">License</a></span>`;

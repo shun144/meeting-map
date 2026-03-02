@@ -3,12 +3,12 @@ import { isMarker, smoothMove } from "@/features/map/utils/marker";
 import { useMapStore } from "@/store/useMapStore";
 import maplibregl from "maplibre-gl";
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+import { toast } from "react-toastify";
 import { Destination } from "../domains/Destination";
 import type { DestinationRepository } from "../domains/DestinationRepository";
-import useDestinationMarkerManager from "./useDestinationMarkerManager";
-import { toast } from "react-toastify";
 import { createUserMarkerElement } from "../utils/userMarker";
-import { useNavigate } from "react-router";
+import useDestinationMarkerManager from "./useDestinationMarkerManager";
 
 const useMapEvent = (
   mapContainerRef: React.RefObject<HTMLDivElement | null>,

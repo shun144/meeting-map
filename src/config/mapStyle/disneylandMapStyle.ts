@@ -1,4 +1,5 @@
 import { type MapSrcStyle } from "./types";
+import { osmAttribution } from "./constants";
 
 const PMTILES_SRC =
   "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/version1/disneyland.pmtiles";
@@ -18,7 +19,7 @@ export const disneylandMapStyle: MapSrcStyle = {
       tdl: {
         type: "vector",
         url: "pmtiles://" + PMTILES_SRC,
-        attribution: "© OpenStreetMap",
+        attribution: osmAttribution,
         maxzoom: 14,
       },
     },
