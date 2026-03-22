@@ -1,11 +1,16 @@
-import type { MapRepository } from "../infrastructure/MapRepository";
+import type { SupabaseMapRepository } from "../infrastructure/SupabaseMapRepository";
 
 export const mapLoader = async (
-  repo: MapRepository,
+  repo: SupabaseMapRepository,
   mapId: string | undefined,
 ): Promise<void> => {
-  const mapData = await repo.find(mapId);
-  if (!mapData) {
+  if (!mapId) {
+    throw new Response("Map Not Found", { status: 404 });
+  }
+
+  try {
+    await repo.find(mapId);
+  } catch (error) {
     throw new Response("Map Not Found", { status: 404 });
   }
 };

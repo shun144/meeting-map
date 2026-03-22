@@ -5,12 +5,12 @@ import { createRoutesStub } from "react-router";
 describe("エラーページテスト", () => {
   const renderComponent = async () => {
     const Stub = createRoutesStub([{ path: "/", Component: NotFound }]);
-    await act(() => render(<Stub initialEntries={["/"]} />));
+    return await act(() => render(<Stub initialEntries={["/"]} />));
   };
 
   test("404テキストが表示されること", async () => {
     await renderComponent();
-    const sut = await screen.findByText("404");
-    expect(sut).toBeVisible();
+    const heading = await screen.findByText("404");
+    expect(heading).toBeVisible();
   });
 });

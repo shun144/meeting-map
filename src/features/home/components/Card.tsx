@@ -1,16 +1,16 @@
 import { type FC } from "react";
 import { NavLink } from "react-router";
-import type { MapDTO } from "./Home";
+import type { Map } from "@/features/map/domains/Map";
 
 interface Props {
-  mapInfo: MapDTO;
+  map: Map;
   isClearing: boolean;
 }
 
-const Card: FC<Props> = ({ mapInfo, isClearing }) => {
+const Card: FC<Props> = ({ map, isClearing }) => {
   return (
     <NavLink
-      to={`/map/${mapInfo.id}`}
+      to={`/map/${map.id}`}
       className={({ isActive }) =>
         `group block p-4 sm:p-6 lg:p-8 bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border-2 ${
           isActive
@@ -37,7 +37,7 @@ const Card: FC<Props> = ({ mapInfo, isClearing }) => {
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors truncate">
-            {mapInfo.name}
+            {map.name}
           </h2>
         </div>
       </div>

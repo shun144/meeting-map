@@ -2,18 +2,18 @@ import Home from "@/features/home/components/Home";
 import { act, render, screen } from "@testing-library/react";
 import { createRoutesStub } from "react-router";
 
-const mockFetchAll = vi.fn();
+const mockFindAll = vi.fn();
 
-vi.mock("@/features/map/infrastructure/MapRepository", () => ({
-  MapRepository: class {
-    fetchAll = mockFetchAll;
+vi.mock("@/features/map/infrastructure/SupabaseMapRepository", () => ({
+  SupabaseMapRepository: class {
+    findAll = mockFindAll;
   },
 }));
 
-describe("Home表示テスト", () => {
+describe("Homeコンポーネントテスト", () => {
   beforeEach(() => {
-    mockFetchAll.mockReset();
-    mockFetchAll.mockResolvedValue([
+    mockFindAll.mockReset();
+    mockFindAll.mockResolvedValue([
       {
         id: "test-id",
         name: "test用の地図",
@@ -34,7 +34,7 @@ describe("Home表示テスト", () => {
   });
 
   test("ローディング画面が表示されること", async () => {
-    mockFetchAll.mockImplementation(() => new Promise(() => {}));
+    mockFindAll.mockImplementation(() => new Promise(() => {}));
     await renderComponent();
     const sut = await screen.findByText("読み込み中...");
     expect(sut).toBeVisible();
@@ -47,7 +47,7 @@ describe("Home表示テスト", () => {
   });
 
   test("地図データなし_地図がありませんが表示されること", async () => {
-    mockFetchAll.mockResolvedValue([]);
+    mockFindAll.mockResolvedValue([]);
     await renderComponent();
     const sut = await screen.findByText("地図がありません");
     expect(sut).toBeVisible();

@@ -3,11 +3,11 @@ import Layout from "@/components/ui/Layout";
 import Map from "@/features/map/components/Map";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import NotFound from "./NotFound";
-import { MapRepository } from "@/features/map/infrastructure/MapRepository";
+import { SupabaseMapRepository } from "@/features/map/infrastructure/SupabaseMapRepository";
 import { mapLoader } from "@/features/map/loader/mapLoader";
 import MapNotFound from "@/features/map/components/MapNotFound";
 
-const repo = new MapRepository();
+const repo = new SupabaseMapRepository();
 const AppRouteProvider = () => {
   const router = createBrowserRouter([
     {

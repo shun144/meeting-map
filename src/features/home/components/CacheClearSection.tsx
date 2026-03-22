@@ -1,4 +1,4 @@
-import React, { memo, useState, type FC } from "react";
+import React, { memo, useCallback, useState, type FC } from "react";
 import { clearCache } from "@/lib/indexedDB/database";
 
 interface Props {
@@ -9,19 +9,15 @@ interface Props {
 const CacheClearSection: FC<Props> = ({ isClearing, setIsClearing }) => {
   const [clearSuccess, setClearSuccess] = useState(false);
 
-  const handleClearCache = async () => {
-    if (
-      !confirm(
-        "キャッシュした地図データをクリアしますか？\nオフライン時に地図データが使用できなくなります。",
-      )
-    )
-      return;
+  const handleClearCache = useCallback(async () => {
+    const msg =
+      "キャッシュした地図データをクリアしますか？\nオフライン時に地図データが使用できなくなります。";
+
+    if (!confirm(msg)) return;
 
     setIsClearing(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
       await clearCache();
-
       setClearSuccess(true);
       setTimeout(() => setClearSuccess(false), 3000);
     } catch (error) {
@@ -30,7 +26,7 @@ const CacheClearSection: FC<Props> = ({ isClearing, setIsClearing }) => {
     } finally {
       setIsClearing(false);
     }
-  };
+  }, []);
 
   return (
     <div className="mt-10 sm:mt-14 border-t border-indigo-100 pt-6 sm:pt-8 flex flex-col items-center gap-3">
