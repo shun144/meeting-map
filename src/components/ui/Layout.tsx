@@ -1,5 +1,5 @@
-import Header from "@/features/layout/components/Header";
-import { memo, useEffect } from "react";
+import Header from "@/components/ui/Header";
+import { memo } from "react";
 import { Outlet } from "react-router";
 import { ToastContainer } from "react-toastify";
 

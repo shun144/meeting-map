@@ -1,6 +1,5 @@
-import { create } from "zustand";
-import maplibregl from "maplibre-gl";
 import type DestinationMarker from "@/features/map/lib/DestinationMarker";
+import { create } from "zustand";
 
 interface Store {
   markers: DestinationMarker[];

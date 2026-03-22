@@ -1,5 +1,5 @@
 import Home from "@/features/home/components/Home";
-import Layout from "@/features/layout/components/Layout";
+import Layout from "@/components/ui/Layout";
 import Map from "@/features/map/components/Map";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import NotFound from "./NotFound";
