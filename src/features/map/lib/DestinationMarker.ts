@@ -1,4 +1,4 @@
-import type { Destination } from "./Destination";
+import type { Destination } from "../domains/Destination";
 import maplibregl from "maplibre-gl";
 import styles from "./marker.module.css";
 

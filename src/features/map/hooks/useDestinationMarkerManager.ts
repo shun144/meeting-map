@@ -3,7 +3,7 @@ import { Destination } from "@/features/map/domains/Destination";
 import type { DestinationRepository } from "@/features/map/domains/DestinationRepository";
 import { useMapStore } from "@/store/useMapStore";
 import { toast } from "react-toastify";
-import DestinationMarker from "../domains/DestinationMarker";
+import DestinationMarker from "../lib/DestinationMarker";
 
 const useDestinationMarkerManager = (repo: DestinationRepository) => {
   const createDestinationMarker = useCallback(
