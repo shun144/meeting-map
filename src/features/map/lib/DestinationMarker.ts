@@ -16,7 +16,7 @@ export default class DestinationMarker {
       className: styles.marker,
     });
 
-    this.element.setLngLat(destination.latlng);
+    this.element.setLngLat(destination.lnglat);
     this.element
       .getElement()
       .setAttribute("data-destination-marker-id", String(destination.id));

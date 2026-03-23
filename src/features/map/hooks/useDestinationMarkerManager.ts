@@ -14,7 +14,7 @@ const useDestinationMarkerManager = (repo: DestinationRepository) => {
       const onChangeInput = (title: string) => {
         dm.destination = new Destination(
           dm.destination.id,
-          dm.destination.latlng,
+          dm.destination.lnglat,
           title,
         );
 

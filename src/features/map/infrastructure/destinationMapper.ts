@@ -10,6 +10,7 @@ export interface DestinationDTO {
   map_id: string;
 }
 
+// TODO:https://claude.ai/chat/997bf97c-7a30-477f-9da1-2fea1beae366
 export const toDTO = (
   destination: Destination,
   mapId: string,
@@ -17,12 +18,12 @@ export const toDTO = (
   let lat: number;
   let lng: number;
 
-  if (Array.isArray(destination.latlng)) {
-    lng = destination.latlng[0];
-    lat = destination.latlng[1];
-  } else if ("lng" in destination.latlng && "lat" in destination.latlng) {
-    lng = destination.latlng.lng;
-    lat = destination.latlng.lat;
+  if (Array.isArray(destination.lnglat)) {
+    lng = destination.lnglat[0];
+    lat = destination.lnglat[1];
+  } else if ("lng" in destination.lnglat && "lat" in destination.lnglat) {
+    lng = destination.lnglat.lng;
+    lat = destination.lnglat.lat;
   } else {
     throw new Error("緯度経度の値が不正です");
   }
@@ -39,5 +40,9 @@ export const toDTO = (
 };
 
 export const fromDTO = (row: Tables<"destination">): DestinationClass => {
-  return new DestinationClass(row.id, [row.lng, row.lat], row.title ?? "");
+  return new DestinationClass(
+    row.id,
+    { lng: row.lng, lat: row.lat },
+    row.title ?? "",
+  );
 };
