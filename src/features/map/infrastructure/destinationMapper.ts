@@ -10,7 +10,6 @@ export interface DestinationDTO {
   map_id: string;
 }
 
-// TODO:https://claude.ai/chat/997bf97c-7a30-477f-9da1-2fea1beae366
 export const toDTO = (
   destination: Destination,
   mapId: string,
