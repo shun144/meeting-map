@@ -16,15 +16,14 @@ export class SupabaseMapRepository implements MapRepository {
     return data.map((x) => fromDTO(x as Tables<"map">));
   }
 
-  async find(id: string) {
-    const { data, error } = await supabase
+  async isExist(id: string) {
+    const { count, error } = await supabase
       .from("map")
-      .select("id")
+      .select("id", { count: "exact", head: true })
       .eq("id", id)
-      .eq("invalid_flg", false)
-      .single();
+      .eq("invalid_flg", false);
 
     if (error) throw new Error(error.message);
-    return fromDTO(data as Tables<"map">);
+    return (count ?? 0) > 0;
   }
 }

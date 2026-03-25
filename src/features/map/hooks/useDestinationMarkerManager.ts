@@ -8,7 +8,7 @@ import DestinationMarker from "../lib/DestinationMarker";
 const useDestinationMarkerManager = (repo: DestinationRepository) => {
   const createDestinationMarker = useCallback(
     (destination: Destination, status: "NEW" | "SAVED") => {
-      const { markers, addMarkers, updateMarkers, filterMarkers } =
+      const { addMarkers, updateMarkers, filterMarkers } =
         useMapStore.getState();
 
       const onChangeInput = (title: string) => {

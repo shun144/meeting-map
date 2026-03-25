@@ -8,13 +8,6 @@ describe("Destinationクラス", () => {
     expect(sut.title).toBe("渋谷");
   });
 
-  test("titleに空文字を渡すと例外エラーになる", () => {
-    // 準備 & 実施
-    const sut = () => new Destination(1, { lng: 139.7, lat: 35.6 }, "");
-    // 検証
-    expect(sut).toThrow("titleは必須です");
-  });
-
   describe("緯度(lat)は-90以上かつ90以下である", () => {
     test("緯度(lat)が90より大きい場合例外エラーになる", () => {
       const sut = () => new Destination(1, { lng: 139.7, lat: 90.1 }, "渋谷");

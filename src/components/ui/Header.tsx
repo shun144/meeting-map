@@ -35,7 +35,7 @@ const Header = () => {
             className="text-white text-base sm:text-lg font-semibold tracking-wide select-none cursor-pointer"
             onClick={onNavigateHome}
           >
-            オフライン待ち合わせ
+            オフライン待ち合わせマップ
           </h1>
         </div>
       </div>
