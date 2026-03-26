@@ -1,8 +1,61 @@
 import { type MapSrcStyle } from "./types";
 import { osmAttribution } from "./constants";
+import type { SymbolLayerSpecification } from "maplibre-gl";
 
 const PMTILES_SRC =
   "https://nwmuhxuprqnikmbcwteo.supabase.co/storage/v1/object/public/public-maps/version1/disneyland.pmtiles";
+
+// ===================================================
+// 🎨 マップカラーテーマ — ここを変更するだけで全体に反映
+// ===================================================
+const theme = {
+  /** 背景・地面ベース */
+  background: "#f5f5f2",
+  /** テーマパーク内地面 */
+  ground: "#f0ede8",
+  /** 水域 */
+  water: "#b8d8ea",
+  /** 道路・歩道・橋 */
+  road: "#ffffff",
+  /** 緑地・公園・庭園 */
+  green: "#C2F0D4",
+  /** 花壇 */
+  flowerbed: "#b8dcb0",
+  /** 建物塗り */
+  building: "#E7E8EB",
+  /** 建物アウトライン */
+  buildingLine: "#c8cdd4",
+  /** 鉄道（背景） */
+  railBg: "#b0a090",
+  /** 鉄道（前景） */
+  railFg: "#e0d0b0",
+  /** アトラクション名 */
+  labelAttraction: "#c0392b",
+  /** ショップ名 */
+  labelShop: "#5a1a70",
+  /** レストラン・ファストフード名 */
+  labelFood: "#bf5000",
+  /** カフェ名 */
+  labelCafe: "#5d3317",
+  /** テキストハロー */
+  halo: "rgba(255, 255, 255, 0.95)",
+} as const;
+
+// ===================================================
+// 共通レイアウト
+// ===================================================
+const layerSource = {
+  source: "tdl",
+  "source-layer": "disneyland",
+};
+
+const textStyle = {
+  "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
+  "text-font": ["Noto Sans Regular"],
+  "text-anchor": "top",
+  "text-offset": [0, 1],
+  "text-max-width": 10,
+} satisfies Partial<SymbolLayerSpecification["layout"]>;
 
 export const disneylandMapStyle: MapSrcStyle = {
   src: PMTILES_SRC,
@@ -24,50 +77,32 @@ export const disneylandMapStyle: MapSrcStyle = {
       },
     },
     layers: [
-      // 背景
       {
         id: "background",
         type: "background",
-        paint: {
-          "background-color": "#f9f0d8",
-        },
+        paint: { "background-color": theme.background },
       },
-
-      // 地面
       {
-        id: "test",
-        source: "tdl",
-        "source-layer": "disneyland",
+        id: "ground",
+        ...layerSource,
         type: "fill",
         filter: [
           "any",
           ["==", "resort", "theme_park"],
           ["==", "tourism", "theme_park"],
         ],
-        paint: {
-          "fill-color": "#e8dcc8",
-          "fill-opacity": 1,
-        },
+        paint: { "fill-color": theme.ground, "fill-opacity": 1 },
       },
-
-      // 水域
       {
         id: "water",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "fill",
         filter: ["==", "natural", "water"],
-        paint: {
-          "fill-color": "#5bb8f5",
-          "fill-opacity": 1,
-        },
+        paint: { "fill-color": theme.water, "fill-opacity": 1 },
       },
-
-      // 道路/橋
       {
         id: "footway-fill",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "fill",
         filter: [
           "any",
@@ -75,104 +110,71 @@ export const disneylandMapStyle: MapSrcStyle = {
           ["==", "landuse", "construction"],
           ["==", "bridge", "yes"],
         ],
-        paint: {
-          "fill-color": "#f5e6c8",
-          "fill-opacity": 1,
-        },
+        paint: { "fill-color": theme.road, "fill-opacity": 1 },
       },
-
-      // 緑地
       {
         id: "landuse-green",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "fill",
         filter: [
           "any",
           ["in", "landuse", "forest", "grass", "park", "garden"],
           ["in", "leisure", "forest", "grass", "park", "garden"],
         ],
-        paint: {
-          "fill-color": "#b8e0a0",
-          "fill-opacity": 1,
-        },
+        paint: { "fill-color": theme.green, "fill-opacity": 1 },
       },
-
-      // 囲障付き庭園
       {
         id: "garden",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "fill",
         filter: [
           "all",
           ["==", "barrier", "fence"],
           ["==", "leisure", "garden"],
         ],
-        paint: {
-          "fill-color": "#b8e0a0",
-        },
+        paint: { "fill-color": theme.green },
       },
-
-      // 建物
       {
         id: "buildings",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "fill",
         filter: ["has", "building"],
         minzoom: 15,
-        paint: {
-          "fill-color": "#fde8b0",
-          "fill-opacity": 1,
-        },
+        paint: { "fill-color": theme.building, "fill-opacity": 1 },
       },
-
-      // 建物（アウトライン）
       {
         id: "buildings-outline",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "line",
         filter: ["has", "building"],
         minzoom: 15,
-        paint: {
-          "line-color": "#d4a84b",
-          "line-width": 1,
-        },
+        paint: { "line-color": theme.buildingLine, "line-width": 0.7 },
       },
-
-      // リバー鉄道の線路
       {
         id: "railway-narrow-gauge-bg",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "line",
         filter: ["==", "railway", "narrow_gauge"],
         paint: {
-          "line-color": "#8B4513",
+          "line-color": theme.railBg,
           "line-width": 3,
-          "line-opacity": 0.6,
+          "line-opacity": 0.5,
         },
       },
       {
         id: "railway-narrow-gauge",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "line",
         filter: ["==", "railway", "narrow_gauge"],
         paint: {
-          "line-color": "#D4A853",
+          "line-color": theme.railFg,
           "line-width": 1.5,
           "line-opacity": 0.7,
         },
       },
-
-      // その他
       {
         id: "roads-other",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "line",
         filter: [
           "all",
@@ -190,54 +192,43 @@ export const disneylandMapStyle: MapSrcStyle = {
           ],
         ],
         paint: {
-          "line-color": "#ffffff",
+          "line-color": theme.road,
           "line-width": [
             "interpolate",
             ["linear"],
             ["zoom"],
             16,
-            1,
+            1.5,
             17,
-            2,
+            2.5,
             19,
-            4,
+            5,
           ],
         },
       },
-
       {
         id: "flowerbed",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "fill",
         filter: ["==", "landuse", "flowerbed"],
-        paint: {
-          "fill-color": "#a8d5a2",
-          "fill-opacity": 0.7,
-        },
+        paint: { "fill-color": theme.flowerbed, "fill-opacity": 0.8 },
       },
-
-      // トイレ
       {
         id: "toilets",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "symbol",
         filter: ["==", "amenity", "toilets"],
         minzoom: 16,
         layout: {
           "icon-image": "toilet-icon",
-          "icon-size": 0.7,
+          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.6, 17, 0.6],
           "icon-allow-overlap": true,
           "icon-ignore-placement": true,
         },
       },
-
-      // ショップ
       {
         id: "shops",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "symbol",
         filter: ["has", "shop"],
         minzoom: 17,
@@ -248,12 +239,9 @@ export const disneylandMapStyle: MapSrcStyle = {
           "icon-ignore-placement": true,
         },
       },
-
-      // レストラン
       {
         id: "restaurants",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "symbol",
         filter: ["in", "amenity", "restaurant"],
         minzoom: 16,
@@ -265,11 +253,9 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
-      // カフェ
       {
         id: "cafe",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "symbol",
         filter: ["in", "amenity", "cafe"],
         minzoom: 16,
@@ -280,12 +266,9 @@ export const disneylandMapStyle: MapSrcStyle = {
           "icon-ignore-placement": true,
         },
       },
-
-      // ファストフード
       {
         id: "fast_food",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "symbol",
         filter: ["in", "amenity", "fast_food"],
         minzoom: 16,
@@ -297,26 +280,28 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
-      // アトラクション名ラベル
       {
         id: "attraction-labels",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "symbol",
         filter: [
-          "any",
-          ["has", "attraction"],
+          "all",
+          ["!=", "$type", "LineString"], // ビッグサンダー付近の大量発生アイコン抑止
           [
-            "all",
-            ["==", "tourism", "attraction"],
-            ["!=", "type", "route"], // リバー鉄道の路線にラベル名がつくのを回避
+            "any",
+            ["has", "attraction"],
+            ["all", ["==", "tourism", "attraction"], ["!=", "type", "route"]],
+            ["==", "railway", "station"],
           ],
-          ["==", "railway", "station"],
+          ["has", "name"],
         ],
         minzoom: 16,
         layout: {
-          "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
-          "text-font": ["Noto Sans Bold"],
+          "icon-image": "attraction-icon",
+          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.6, 17, 0.6],
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
+          ...textStyle,
           "text-size": [
             "interpolate",
             ["linear"],
@@ -330,30 +315,21 @@ export const disneylandMapStyle: MapSrcStyle = {
             19,
             14,
           ],
-          "text-anchor": "center",
-          "text-max-width": 8,
-          // "text-allow-overlap": true, // ← 追加
-          // "text-ignore-placement": true, // ← 追加
         },
         paint: {
-          "text-color": "#c0392b",
-          // "text-color": "blue",
-          "text-halo-color": "#fff9e6",
-          "text-halo-width": 2,
+          "text-color": theme.labelAttraction,
+          "text-halo-color": theme.halo,
+          "text-halo-width": 1.5,
         },
       },
-
-      // ファストフード店名
       {
         id: "fastfood-labels",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "symbol",
         filter: ["in", "amenity", "fast_food"],
         minzoom: 17,
         layout: {
-          "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
-          "text-font": ["Noto Sans Regular"],
+          ...textStyle,
           "text-size": [
             "interpolate",
             ["linear"],
@@ -367,28 +343,21 @@ export const disneylandMapStyle: MapSrcStyle = {
             20,
             18,
           ],
-          "text-anchor": "top",
-          "text-offset": [0, 1],
-          "text-max-width": 10,
         },
         paint: {
-          "text-color": "#e05c00",
-          "text-halo-color": "#fff9e6",
+          "text-color": theme.labelFood,
+          "text-halo-color": theme.halo,
           "text-halo-width": 1.5,
         },
       },
-
-      // カフェラベル
       {
         id: "cafe-label",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "symbol",
         filter: ["in", "amenity", "cafe"],
         minzoom: 17,
         layout: {
-          "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
-          "text-font": ["Noto Sans Regular"],
+          ...textStyle,
           "text-size": [
             "interpolate",
             ["linear"],
@@ -402,28 +371,21 @@ export const disneylandMapStyle: MapSrcStyle = {
             20,
             18,
           ],
-          "text-anchor": "top",
-          "text-offset": [0, 1],
-          "text-max-width": 10,
         },
         paint: {
-          "text-color": "#7b4f2e",
-          "text-halo-color": "#fff9e6",
+          "text-color": theme.labelCafe,
+          "text-halo-color": theme.halo,
           "text-halo-width": 1.5,
         },
       },
-
-      // ショップ名ラベル
       {
         id: "shop-label",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "symbol",
         filter: ["has", "shop"],
         minzoom: 17,
         layout: {
-          "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
-          "text-font": ["Noto Sans Regular"],
+          ...textStyle,
           "text-size": [
             "interpolate",
             ["linear"],
@@ -437,28 +399,21 @@ export const disneylandMapStyle: MapSrcStyle = {
             20,
             18,
           ],
-          "text-anchor": "top",
-          "text-offset": [0, 0.5],
-          "text-max-width": 10,
         },
         paint: {
-          "text-color": "#7b2d8b",
-          "text-halo-color": "#fff9e6",
+          "text-color": theme.labelShop,
+          "text-halo-color": theme.halo,
           "text-halo-width": 1.5,
         },
       },
-
-      // レストラン名ラベル
       {
         id: "restaurant-label",
-        source: "tdl",
-        "source-layer": "disneyland",
+        ...layerSource,
         type: "symbol",
         filter: ["in", "amenity", "restaurant"],
         minzoom: 17,
         layout: {
-          "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
-          "text-font": ["Noto Sans Regular"],
+          ...textStyle,
           "text-size": [
             "interpolate",
             ["linear"],
@@ -472,13 +427,10 @@ export const disneylandMapStyle: MapSrcStyle = {
             20,
             18,
           ],
-          "text-anchor": "top",
-          "text-offset": [0, 1],
-          "text-max-width": 10,
         },
         paint: {
-          "text-color": "#e05c00",
-          "text-halo-color": "#fff9e6",
+          "text-color": theme.labelFood,
+          "text-halo-color": theme.halo,
           "text-halo-width": 1.5,
         },
       },

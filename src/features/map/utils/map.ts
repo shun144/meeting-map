@@ -1,7 +1,7 @@
 import maplibregl from "maplibre-gl";
 import { PMTiles, Protocol } from "pmtiles";
 import { mapStyles } from "@/config/mapStyle";
-import { toilet, fastfood, cafe, restaurant, shop } from "@/assets/icon";
+import { images } from "@/assets/icon";
 import { toast } from "react-toastify";
 
 export const createMap = (mapId: string, mapContainerDiv: HTMLDivElement) => {
@@ -33,18 +33,10 @@ const getMapStyle = (mapId: string) => {
   return mapStyles[mapId];
 };
 
-const images: { [key: string]: string } = {
-  "toilet-icon": toilet,
-  "fastfood-icon": fastfood,
-  "cafe-icon": cafe,
-  "restaurant-icon": restaurant,
-  "shop-icon": shop,
-};
-
 export const addImages = (mapInstance: maplibregl.Map) => {
   for (const [name, src] of Object.entries(images)) {
     if (mapInstance.hasImage(name)) continue;
-    const img = new Image(32, 32);
+    const img = new Image(55, 64);
     img.onload = () => {
       if (mapInstance.hasImage(name)) return;
       mapInstance.addImage(name, img);

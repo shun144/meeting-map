@@ -9,6 +9,7 @@ import { Destination } from "../domains/Destination";
 import type { DestinationRepository } from "../domains/DestinationRepository";
 import { createUserMarkerElement } from "../utils/userMarker";
 import useDestinationMarkerManager from "./useDestinationMarkerManager";
+import { disneylandMapStyle } from "@/config/mapStyle/disneylandMapStyle";
 
 const useMapEvent = (
   mapContainerRef: React.RefObject<HTMLDivElement | null>,
@@ -183,6 +184,28 @@ const useMapEvent = (
         if (isTouch) return;
         resetTimer();
       });
+
+      if (import.meta.env.DEV) {
+        // const clickableLayers = disneylandMapStyle.style.layers
+        //   .filter((l) => l.type === "symbol")
+        //   .map((l) => l.id);
+
+        const clickableLayers = disneylandMapStyle.style.layers.map(
+          (l) => l.id,
+        );
+
+        mapInstance.on("click", (e) => {
+          const allFeatures = mapInstance.queryRenderedFeatures(e.point);
+          const features = allFeatures.filter((f) =>
+            clickableLayers.includes(f.layer.id),
+          );
+          if (features.length === 0) return;
+          console.table({
+            $type: features[0].geometry.type,
+            ...features[0].properties,
+          });
+        });
+      }
     });
 
     mapInstance.on("moveend", () => {

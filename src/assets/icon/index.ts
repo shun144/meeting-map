@@ -1,5 +1,15 @@
-export { default as toilet } from "./toilet.png";
-export { default as fastfood } from "./fastfood.png";
-export { default as cafe } from "./cafe.png";
-export { default as restaurant } from "./restaurant.png";
-export { default as shop } from "./shop.png";
+import cafe from "./cafe.svg";
+import fastfood from "./fastfood.svg";
+import restaurant from "./restaurant.svg";
+import shop from "./shop.svg";
+import toilet from "./toilet.svg";
+import attraction from "./attraction.svg";
+
+export const images: { [key: string]: string } = {
+  "cafe-icon": cafe,
+  "toilet-icon": toilet,
+  "fastfood-icon": fastfood,
+  "restaurant-icon": restaurant,
+  "shop-icon": shop,
+  "attraction-icon": attraction,
+};
