@@ -30,13 +30,13 @@ const theme = {
   /** 鉄道（前景） */
   railFg: "#e0d0b0",
   /** アトラクション名 */
-  labelAttraction: "#c0392b",
+  labelAttraction: "#BE5103",
   /** ショップ名 */
-  labelShop: "#5a1a70",
+  labelShop: "#2B7FFF",
   /** レストラン・ファストフード名 */
-  labelFood: "#bf5000",
+  labelFood: "#E84335",
   /** カフェ名 */
-  labelCafe: "#5d3317",
+  labelCafe: "#E84335",
   /** テキストハロー */
   halo: "rgba(255, 255, 255, 0.95)",
 } as const;
@@ -50,18 +50,38 @@ const layerSource = {
 };
 
 const textStyle = {
-  "text-field": ["coalesce", ["get", "name:ja"], ["get", "name"]],
+  "text-field": [
+    "coalesce",
+    ["get", "name:ja"],
+    ["get", "name"],
+    ["get", "name:en"],
+  ],
   "text-font": ["Noto Sans Regular"],
-  "text-anchor": "top",
-  "text-offset": [0, 1],
+  "text-size": ["interpolate", ["linear"], ["zoom"], 17, 12, 18, 14],
+  "text-variable-anchor": ["top", "right", "left"],
+  "text-radial-offset": 0.8,
   "text-max-width": 10,
+  "text-padding": 4,
+
+  // テキストは衝突したら消す
+  "text-allow-overlap": false,
+  "text-ignore-placement": false,
+} satisfies Partial<SymbolLayerSpecification["layout"]>;
+
+const iconStyle = {
+  "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.4, 17, 0.5],
+  "icon-padding": 10,
+
+  // アイコンは常に表示
+  "icon-allow-overlap": true,
+  "icon-ignore-placement": true,
 } satisfies Partial<SymbolLayerSpecification["layout"]>;
 
 export const disneylandMapStyle: MapSrcStyle = {
   src: PMTILES_SRC,
   center: [139.8786137, 35.6339284],
   zoom: 17,
-  maxZoom: 20,
+  maxZoom: 19,
   minZoom: 15,
   sw: { lng: 139.8564, lat: 35.6122 },
   ne: { lng: 139.9052, lat: 35.6538 },
@@ -139,7 +159,6 @@ export const disneylandMapStyle: MapSrcStyle = {
         ...layerSource,
         type: "fill",
         filter: ["has", "building"],
-        minzoom: 15,
         paint: { "fill-color": theme.building, "fill-opacity": 1 },
       },
       {
@@ -147,7 +166,6 @@ export const disneylandMapStyle: MapSrcStyle = {
         ...layerSource,
         type: "line",
         filter: ["has", "building"],
-        minzoom: 15,
         paint: { "line-color": theme.buildingLine, "line-width": 0.7 },
       },
       {
@@ -213,32 +231,38 @@ export const disneylandMapStyle: MapSrcStyle = {
         filter: ["==", "landuse", "flowerbed"],
         paint: { "fill-color": theme.flowerbed, "fill-opacity": 0.8 },
       },
+
+      // トイレ
       {
         id: "toilets",
         ...layerSource,
         type: "symbol",
         filter: ["==", "amenity", "toilets"],
-        minzoom: 16,
+        minzoom: 17,
         layout: {
           "icon-image": "toilet-icon",
-          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.6, 17, 0.6],
-          "icon-allow-overlap": true,
-          "icon-ignore-placement": true,
+          ...iconStyle,
         },
       },
+
       {
         id: "shops",
         ...layerSource,
         type: "symbol",
         filter: ["has", "shop"],
-        minzoom: 17,
+        minzoom: 16,
         layout: {
           "icon-image": "shop-icon",
-          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.6, 17, 0.5],
-          "icon-allow-overlap": true,
-          "icon-ignore-placement": true,
+          ...iconStyle,
+          ...textStyle,
+        },
+        paint: {
+          "text-color": theme.labelShop,
+          "text-halo-color": theme.halo,
+          "text-halo-width": 1.5,
         },
       },
+
       {
         id: "restaurants",
         ...layerSource,
@@ -247,9 +271,13 @@ export const disneylandMapStyle: MapSrcStyle = {
         minzoom: 16,
         layout: {
           "icon-image": "restaurant-icon",
-          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.6, 17, 0.6],
-          "icon-allow-overlap": true,
-          "icon-ignore-placement": true,
+          ...iconStyle,
+          ...textStyle,
+        },
+        paint: {
+          "text-color": theme.labelFood,
+          "text-halo-color": theme.halo,
+          "text-halo-width": 1.5,
         },
       },
 
@@ -261,11 +289,17 @@ export const disneylandMapStyle: MapSrcStyle = {
         minzoom: 16,
         layout: {
           "icon-image": "cafe-icon",
-          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.6, 17, 0.6],
-          "icon-allow-overlap": true,
-          "icon-ignore-placement": true,
+          ...iconStyle,
+          ...textStyle,
+        },
+
+        paint: {
+          "text-color": theme.labelCafe,
+          "text-halo-color": theme.halo,
+          "text-halo-width": 1.5,
         },
       },
+
       {
         id: "fast_food",
         ...layerSource,
@@ -274,12 +308,17 @@ export const disneylandMapStyle: MapSrcStyle = {
         minzoom: 16,
         layout: {
           "icon-image": "fastfood-icon",
-          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.4, 17, 0.5],
-          "icon-allow-overlap": true,
-          "icon-ignore-placement": true,
+          ...iconStyle,
+          ...textStyle,
+        },
+        paint: {
+          "text-color": theme.labelFood,
+          "text-halo-color": theme.halo,
+          "text-halo-width": 1.5,
         },
       },
 
+      // アトラクション
       {
         id: "attraction-labels",
         ...layerSource,
@@ -295,141 +334,14 @@ export const disneylandMapStyle: MapSrcStyle = {
           ],
           ["has", "name"],
         ],
-        minzoom: 16,
+        minzoom: 15,
         layout: {
           "icon-image": "attraction-icon",
-          "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.6, 17, 0.6],
-          "icon-allow-overlap": true,
-          "icon-ignore-placement": true,
+          ...iconStyle,
           ...textStyle,
-          "text-size": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            16,
-            11,
-            17,
-            12,
-            18,
-            13,
-            19,
-            14,
-          ],
         },
         paint: {
           "text-color": theme.labelAttraction,
-          "text-halo-color": theme.halo,
-          "text-halo-width": 1.5,
-        },
-      },
-      {
-        id: "fastfood-labels",
-        ...layerSource,
-        type: "symbol",
-        filter: ["in", "amenity", "fast_food"],
-        minzoom: 17,
-        layout: {
-          ...textStyle,
-          "text-size": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            17,
-            12,
-            18,
-            14,
-            19,
-            16,
-            20,
-            18,
-          ],
-        },
-        paint: {
-          "text-color": theme.labelFood,
-          "text-halo-color": theme.halo,
-          "text-halo-width": 1.5,
-        },
-      },
-      {
-        id: "cafe-label",
-        ...layerSource,
-        type: "symbol",
-        filter: ["in", "amenity", "cafe"],
-        minzoom: 17,
-        layout: {
-          ...textStyle,
-          "text-size": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            17,
-            12,
-            18,
-            14,
-            19,
-            16,
-            20,
-            18,
-          ],
-        },
-        paint: {
-          "text-color": theme.labelCafe,
-          "text-halo-color": theme.halo,
-          "text-halo-width": 1.5,
-        },
-      },
-      {
-        id: "shop-label",
-        ...layerSource,
-        type: "symbol",
-        filter: ["has", "shop"],
-        minzoom: 17,
-        layout: {
-          ...textStyle,
-          "text-size": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            17,
-            12,
-            18,
-            14,
-            19,
-            16,
-            20,
-            18,
-          ],
-        },
-        paint: {
-          "text-color": theme.labelShop,
-          "text-halo-color": theme.halo,
-          "text-halo-width": 1.5,
-        },
-      },
-      {
-        id: "restaurant-label",
-        ...layerSource,
-        type: "symbol",
-        filter: ["in", "amenity", "restaurant"],
-        minzoom: 17,
-        layout: {
-          ...textStyle,
-          "text-size": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            17,
-            12,
-            18,
-            14,
-            19,
-            16,
-            20,
-            18,
-          ],
-        },
-        paint: {
-          "text-color": theme.labelFood,
           "text-halo-color": theme.halo,
           "text-halo-width": 1.5,
         },
