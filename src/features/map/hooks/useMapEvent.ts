@@ -10,6 +10,7 @@ import type { DestinationRepository } from "../domains/DestinationRepository";
 import { createUserMarkerElement } from "../utils/userMarker";
 import useDestinationMarkerManager from "./useDestinationMarkerManager";
 import { disneylandMapStyle } from "@/config/mapStyle/disneylandMapStyle";
+import { LngLat } from "@/features/map/domains/valueObjects/LngLat";
 
 const useMapEvent = (
   mapContainerRef: React.RefObject<HTMLDivElement | null>,
@@ -147,7 +148,8 @@ const useMapEvent = (
         event: maplibregl.MapTouchEvent | maplibregl.MapMouseEvent,
       ) => {
         if (timer.current >= 1 && !isMarker(event)) {
-          const destination = new Destination(Date.now(), event.lngLat, "");
+          const lngLat = new LngLat(event.lngLat.lng, event.lngLat.lat);
+          const destination = new Destination(Date.now(), lngLat, "");
           const dm = createDestinationMarker(destination, "NEW");
           dm.element.addTo(mapInstance);
           addMarkers(dm);
@@ -186,10 +188,6 @@ const useMapEvent = (
       });
 
       if (import.meta.env.DEV) {
-        // const clickableLayers = disneylandMapStyle.style.layers
-        //   .filter((l) => l.type === "symbol")
-        //   .map((l) => l.id);
-
         const clickableLayers = disneylandMapStyle.style.layers.map(
           (l) => l.id,
         );

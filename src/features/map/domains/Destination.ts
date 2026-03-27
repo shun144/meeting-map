@@ -1,7 +1,4 @@
-interface LngLat {
-  lng: number;
-  lat: number;
-}
+import { LngLat } from "@/features/map/domains/valueObjects/LngLat";
 
 export class Destination {
   public readonly title: string;
@@ -11,10 +8,6 @@ export class Destination {
     public readonly lnglat: LngLat,
     title: string | null,
   ) {
-    if (lnglat.lat < -90 || lnglat.lat > 90) throw new Error("緯度が不正です");
-    if (lnglat.lng < -180 || lnglat.lng > 180)
-      throw new Error("経度が不正です");
-
     this.title = title ?? "";
   }
 }
