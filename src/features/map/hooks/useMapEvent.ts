@@ -11,6 +11,7 @@ import { createUserMarkerElement } from "../utils/userMarker";
 import useDestinationMarkerManager from "./useDestinationMarkerManager";
 import { disneylandMapStyle } from "@/config/mapStyle/disneylandMapStyle";
 import { LngLat } from "@/features/map/domains/valueObjects/LngLat";
+import { MaplibreAdapter } from "../infrastructure/MaplibreAdapter";
 
 const useMapEvent = (
   mapContainerRef: React.RefObject<HTMLDivElement | null>,
@@ -28,7 +29,28 @@ const useMapEvent = (
     if (!mapContainerRef.current || !mapId) return;
 
     const { addMarkers, cleanupMarkers } = useMapStore.getState();
-    const mapInstance = createMap(mapId, mapContainerRef.current);
+
+    const adapter = new MaplibreAdapter();
+    adapter.init(mapId, mapContainerRef.current);
+    const mapInstance = adapter.getMap();
+
+    adapter.onError((type) => {
+      switch (type) {
+        case "fetch-failed-online":
+          toast.error("地図データの読み込みに失敗しました", {
+            toastId: "map-fetch-error",
+          });
+          break;
+        case "fetch-failed-offline":
+          navigate("/map-not-found");
+          break;
+        default:
+          console.warn("未対応のエラータイプ:", type);
+          break;
+      }
+    });
+
+    // const mapInstance = createMap(mapId, mapContainerRef.current);
 
     let currentPos: maplibregl.LngLat | null = null;
     let animationId: number | null = null;
@@ -38,16 +60,16 @@ const useMapEvent = (
       pitchAlignment: "map",
     });
 
-    mapInstance.on("error", (event) => {
-      if (event.error.message !== "Failed to fetch") return;
-      if (!navigator.onLine) {
-        navigate("/map-not-found");
-      } else {
-        toast.error("地図データの読み込みに失敗しました", {
-          toastId: "map-fetch-error",
-        });
-      }
-    });
+    // mapInstance.on("error", (event) => {
+    //   if (event.error.message !== "Failed to fetch") return;
+    //   if (!navigator.onLine) {
+    //     navigate("/map-not-found");
+    //   } else {
+    //     toast.error("地図データの読み込みに失敗しました", {
+    //       toastId: "map-fetch-error",
+    //     });
+    //   }
+    // });
 
     mapInstance.on("load", () => {
       setMapState(mapInstance);

@@ -1,5 +1,6 @@
 import { Destination } from "@/features/map/domains/Destination";
 import { type Tables } from "@/lib/supabase/schema";
+import { LngLat } from "@/features/map/domains/valueObjects/LngLat";
 
 export interface DestinationDTO {
   id: number;
@@ -22,5 +23,6 @@ export const toDTO = (destination: Destination, mapId: string) => {
 };
 
 export const fromDTO = (row: Tables<"destination">): Destination => {
-  return new Destination(row.id, { lng: row.lng, lat: row.lat }, row.title);
+  const lngLat = new LngLat(row.lng, row.lat);
+  return new Destination(row.id, lngLat, row.title);
 };

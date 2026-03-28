@@ -54,14 +54,14 @@ self.addEventListener("fetch", (event) => {
   const method = event.request.method;
 
   // 特定マップの存在チェック
-  const isMapFetchQuery =
-    method === "GET" &&
+  const isMapExistQuery =
+    method === "HEAD" &&
     url.pathname.includes("/rest/v1/map") &&
     params.get("select") === "id" &&
     params.has("id");
 
-  if (isMapFetchQuery) {
-    const response = handleMapRequest(event, params);
+  if (isMapExistQuery) {
+    const response = handleMapExistRequest(event, params);
     event.respondWith(response);
     return;
   }
@@ -99,7 +99,10 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
-async function handleMapRequest(event: FetchEvent, params: URLSearchParams) {
+async function handleMapExistRequest(
+  event: FetchEvent,
+  params: URLSearchParams,
+) {
   const regex = /eq\.(?<id>.*)/;
   const matchGroups = params.get("id")?.match(regex)?.groups;
   if (!matchGroups) {
@@ -110,10 +113,11 @@ async function handleMapRequest(event: FetchEvent, params: URLSearchParams) {
   if (cached) {
     const headers = new Headers({
       "Content-Type": "application/json; charset=utf-8",
+      "content-range": "0-0/1",
       "x-cache-source": "indexeddb",
     });
 
-    return new Response(JSON.stringify(cached), {
+    return new Response(null, {
       status: 200,
       headers,
     });
