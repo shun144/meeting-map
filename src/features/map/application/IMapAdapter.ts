@@ -1,5 +1,5 @@
 import type { LngLat } from "@/features/map/domains/valueObjects/LngLat";
-
+import { DestinationMarker } from "@/features/map/lib/DestinationMarker";
 export type MapErrorType =
   | "fetch-failed-offline"
   | "fetch-failed-online"
@@ -19,4 +19,7 @@ export interface IMapAdapter {
 
   // 地図の破棄
   destroy(callback?: () => Promise<void> | void): void;
+
+  addMarker: (dm: DestinationMarker) => void;
+  openMarkerPopup(dm: DestinationMarker): void;
 }

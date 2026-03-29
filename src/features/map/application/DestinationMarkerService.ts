@@ -4,7 +4,7 @@ import { Destination } from "@/features/map/domains/Destination";
 import {
   DestinationMarker,
   type DestinationMarkerStatus,
-} from "../lib/DestinationMarker";
+} from "@/features/map/lib/DestinationMarker";
 import { toast } from "react-toastify";
 
 export class DestinationMarkerService {

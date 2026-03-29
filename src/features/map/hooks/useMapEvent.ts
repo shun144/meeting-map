@@ -24,8 +24,8 @@ const useMapEvent = (
     const onLongPress = (lngLat: LngLat) => {
       const d = new Destination(Date.now(), lngLat, "");
       const dm = createDestinationMarker(d, "NEW");
-      dm.element.addTo(adapter.map);
-      setTimeout(() => dm.element.togglePopup(), 0);
+      adapter.addMarker(dm);
+      adapter.openMarkerPopup(dm);
     };
 
     const onLoad = async () => {
@@ -33,7 +33,7 @@ const useMapEvent = (
         const allDestinationList = await repo.findAll();
         allDestinationList.forEach((d) => {
           const dm = createDestinationMarker(d, "SAVED");
-          dm.element.addTo(adapter.map);
+          adapter.addMarker(dm);
           addMarkers(dm);
         });
       } catch (error) {

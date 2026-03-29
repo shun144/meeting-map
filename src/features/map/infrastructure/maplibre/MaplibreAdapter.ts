@@ -5,8 +5,9 @@ import type {
 import { LngLat } from "@/features/map/domains/valueObjects/LngLat";
 import { addImages, createMap } from "@/features/map/utils/map";
 import maplibregl from "maplibre-gl";
-import { isMarker, smoothMove } from "../../utils/marker";
-import { createUserMarkerElement } from "../../utils/userMarker";
+import { isMarker, smoothMove } from "@/features/map/utils/marker";
+import { createUserMarkerElement } from "@/features/map/utils/userMarker";
+import { DestinationMarker } from "@/features/map/lib/DestinationMarker";
 
 export class MaplibreAdapter implements IMapAdapter {
   private _map: maplibregl.Map | null = null;
@@ -78,6 +79,14 @@ export class MaplibreAdapter implements IMapAdapter {
     };
     // idleイベントは地図移動完了時も発火する
     this._map?.on("idle", handler);
+  }
+
+  addMarker(dm: DestinationMarker) {
+    dm.element.addTo(this._map!);
+  }
+
+  openMarkerPopup(dm: DestinationMarker) {
+    setTimeout(() => dm.element.togglePopup(), 0);
   }
 
   destroy(callback?: () => Promise<void> | void) {
@@ -250,10 +259,5 @@ export class MaplibreAdapter implements IMapAdapter {
       const heading = (event as any).webkitCompassHeading ?? event.alpha ?? 0;
       this._userMarker?.setRotation(heading);
     });
-  }
-
-  // TODO: DestinationMarker リファクタ完了後に削除
-  get map() {
-    return this._map!;
   }
 }
