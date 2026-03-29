@@ -26,9 +26,7 @@ export class DestinationMarkerService {
         addMarkers(dm);
         this.repo
           .add(dm.destination)
-          .then(() => {
-            dm.status = "SAVED";
-          })
+          .then(() => (dm.status = "SAVED"))
           .catch((error) => {
             console.error(error.message);
             toast.error("目的地の保存に失敗しました");

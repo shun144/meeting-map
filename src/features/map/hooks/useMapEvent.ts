@@ -25,7 +25,6 @@ const useMapEvent = (
       const d = new Destination(Date.now(), lngLat, "");
       const dm = createDestinationMarker(d, "NEW");
       dm.element.addTo(adapter.map);
-      addMarkers(dm);
       setTimeout(() => dm.element.togglePopup(), 0);
     };
 
