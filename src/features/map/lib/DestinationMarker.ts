@@ -1,13 +1,14 @@
 import type { Destination } from "../domains/Destination";
 import maplibregl from "maplibre-gl";
 import styles from "./marker.module.css";
+export type DestinationMarkerStatus = "NEW" | "SAVED";
 
-export default class DestinationMarker {
+export class DestinationMarker {
   readonly element: maplibregl.Marker;
 
   constructor(
     public destination: Destination,
-    public status: "NEW" | "SAVED",
+    public status: DestinationMarkerStatus,
     onChangeInput: (title: string) => void,
     onClickDelete: (title: string) => void,
   ) {

@@ -1,20 +1,65 @@
 import type { DestinationRepository } from "@/features/map/domains/DestinationRepository";
 import { useMapStore } from "@/store/useMapStore";
 import { Destination } from "@/features/map/domains/Destination";
-import DestinationMarker from "../lib/DestinationMarker";
+import {
+  DestinationMarker,
+  type DestinationMarkerStatus,
+} from "../lib/DestinationMarker";
 import { toast } from "react-toastify";
 
-type DestinationMarkerStatus = "NEW" | "SAVED";
-
 export class DestinationMarkerService {
-  constructor(private readonly repo: DestinationRepository) {}
+  addMarkers: (payload: DestinationMarker) => void;
+  updateMarkers: (payload: DestinationMarker) => void;
+  filterMarkers: (id: number) => void;
+  constructor(private readonly repo: DestinationRepository) {
+    const { addMarkers, updateMarkers, filterMarkers } = useMapStore.getState();
+    this.addMarkers = addMarkers;
+    this.updateMarkers = updateMarkers;
+    this.filterMarkers = filterMarkers;
+  }
+
+  private addDestinationMarker(dm: DestinationMarker) {
+    this.addMarkers(dm);
+    this.repo
+      .add(dm.destination)
+      .then(() => (dm.status = "SAVED"))
+      .catch((error) => {
+        console.error(error.message);
+        toast.error("目的地の保存に失敗しました");
+        dm.element.setOpacity("0.5");
+      });
+  }
+
+  private updateDestinationMarker(dm: DestinationMarker) {
+    this.repo
+      .update(dm.destination)
+      .then(() => this.updateMarkers(dm))
+      .catch((error) => {
+        console.error(error.message);
+        toast.error("目的地の更新に失敗しました");
+        dm.element.setOpacity("0.5");
+      });
+  }
+
+  private deleteDestinationMarker(dm: DestinationMarker) {
+    dm.dummyDelete();
+    this.repo
+      .delete(dm.destination.id)
+      .then(() => this.filterMarkers(dm.destination.id))
+      .catch((error) => {
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : "目的地の削除に失敗しました";
+        toast.error(message);
+        dm.restoreFromDummyDelete();
+      });
+  }
 
   createDestinationMarker = (
     destination: Destination,
     status: DestinationMarkerStatus,
   ) => {
-    const { addMarkers, updateMarkers, filterMarkers } = useMapStore.getState();
-
     const onChangeInput = (title: string) => {
       dm.destination = new Destination(
         dm.destination.id,
@@ -22,46 +67,24 @@ export class DestinationMarkerService {
         title,
       );
 
-      if (dm.status === "NEW") {
-        addMarkers(dm);
-        this.repo
-          .add(dm.destination)
-          .then(() => (dm.status = "SAVED"))
-          .catch((error) => {
-            console.error(error.message);
-            toast.error("目的地の保存に失敗しました");
-            dm.element.setOpacity("0.5");
-          });
-        return;
+      switch (dm.status) {
+        case "NEW":
+          this.addDestinationMarker(dm);
+          break;
+        case "SAVED":
+          this.updateDestinationMarker(dm);
+          break;
+        default:
+          console.error("想定外のタイプです");
+          break;
       }
-
-      this.repo
-        .update(dm.destination)
-        .then(() => updateMarkers(dm))
-        .catch((error) => {
-          console.error(error.message);
-          toast.error("目的地の更新に失敗しました");
-          dm.element.setOpacity("0.5");
-        });
     };
 
     const onClickDelete = (title: string) => {
       if (title !== "" && !confirm("この目的地を削除しますか？")) {
         return;
       }
-
-      dm.dummyDelete();
-      this.repo
-        .delete(dm.destination.id)
-        .then(() => filterMarkers(dm.destination.id))
-        .catch((error) => {
-          const message =
-            error instanceof Error && error.message
-              ? error.message
-              : "目的地の削除に失敗しました";
-          toast.error(message);
-          dm.restoreFromDummyDelete();
-        });
+      this.deleteDestinationMarker(dm);
     };
 
     const dm = new DestinationMarker(
