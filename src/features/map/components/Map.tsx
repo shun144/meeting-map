@@ -5,7 +5,7 @@ import { useMapStore } from "@/store/useMapStore";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "react-toastify";
-import useDestinationMarkerManager from "../hooks/useDestinationMarkerManager";
+import { DestinationMarkerService } from "../application/DestinationMarkerService";
 import MapLoading from "./MapLoading";
 
 const Map = () => {
@@ -23,29 +23,8 @@ interface Props {
 }
 
 const BaseMap = ({ mapId, repo }: Props) => {
-  const [isMapReady, setIsMapReady] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const { mapState } = useMapEvent(mapContainerRef, mapId, repo, setIsMapReady);
-  const { addMarkers } = useMapStore.getState();
-  const { createDestinationMarker } = useDestinationMarkerManager(repo);
-
-  useEffect(() => {
-    if (!mapState) return;
-    const load = async () => {
-      try {
-        const res = await repo.findAll();
-        res.forEach((destination) => {
-          const dm = createDestinationMarker(destination, "SAVED");
-          dm.element.addTo(mapState);
-          addMarkers(dm);
-        });
-      } catch (error) {
-        console.error(error);
-        toast.error("目的地の取得に失敗しました");
-      }
-    };
-    load();
-  }, [mapState, repo]);
+  const { isMapReady } = useMapEvent(mapContainerRef, mapId, repo);
 
   return (
     <div className="relative h-full w-full">
