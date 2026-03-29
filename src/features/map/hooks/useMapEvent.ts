@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
-import type { DestinationRepository } from "../domains/DestinationRepository";
-import { MaplibreAdapter } from "../infrastructure/maplibre/MaplibreAdapter";
-import { DestinationMarkerService } from "../application/DestinationMarkerService";
+import type { DestinationRepository } from "@/features/map/domains/DestinationRepository";
+import { MaplibreAdapter } from "@/features/map/infrastructure/maplibre/MaplibreAdapter";
+import { DestinationMarkerService } from "@/features/map/application/DestinationMarkerService";
 import { useMapStore } from "@/store/useMapStore";
-import type { LngLat } from "../domains/valueObjects/LngLat";
-import { Destination } from "../domains/Destination";
+import type { LngLat } from "@/features/map/domains/valueObjects/LngLat";
+import { Destination } from "@/features/map/domains/Destination";
 
 const useMapEvent = (
   mapContainerRef: React.RefObject<HTMLDivElement | null>,
