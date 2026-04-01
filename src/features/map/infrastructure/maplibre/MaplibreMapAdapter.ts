@@ -1,13 +1,17 @@
+import { images } from "@/assets/icon";
+import { mapStyles } from "@/config/mapStyle";
+import { DestinationMarkerService } from "@/features/map/application/DestinationMarkerService";
 import type {
   IMapAdapter,
   MapErrorType,
 } from "@/features/map/application/IMapAdapter";
+import { Destination } from "@/features/map/domains/Destination";
 import { LngLat } from "@/features/map/domains/valueObjects/LngLat";
-import { addImages, createMap } from "@/features/map/utils/map";
-import maplibregl from "maplibre-gl";
+import { DestinationMarker } from "@/features/map/lib/DestinationMarker";
 import { isMarker, smoothMove } from "@/features/map/utils/marker";
 import { createUserMarkerElement } from "@/features/map/utils/userMarker";
-import { DestinationMarker } from "@/features/map/lib/DestinationMarker";
+import maplibregl from "maplibre-gl";
+import { PMTiles, Protocol } from "pmtiles";
 
 export class MaplibreMapAdapter implements IMapAdapter {
   private _map: maplibregl.Map | null = null;
@@ -17,50 +21,38 @@ export class MaplibreMapAdapter implements IMapAdapter {
   private _userMarker: maplibregl.Marker | null = null;
   private errorCallback: ((type: MapErrorType) => void) | null = null;
   private _animationId: number | null = null;
-  private longPressCallback: ((lngLat: LngLat) => Promise<void> | void) | null =
-    null;
 
-  private constructor() {}
+  constructor(
+    private _id: string,
+    private _destinationMarkerService: DestinationMarkerService,
+    private _initialDestinationMarkers: DestinationMarker[],
+  ) {}
 
-  // ファクトリメソッド
-  static create(
-    id: string,
-    container: HTMLDivElement,
-    onLongPress: (lngLat: LngLat) => Promise<void> | void,
-    onLoad?: () => Promise<void> | void,
-  ): MaplibreMapAdapter {
-    const adapter = new MaplibreMapAdapter();
-    adapter.init(id, container);
-    adapter.onLongPress(onLongPress); // onLoad より前に呼ぶこと
-    adapter.onLoad(onLoad);
-    return adapter;
-  }
-
-  init(id: string, container: HTMLDivElement) {
-    this._map = createMap(id, container);
-    this._map?.on("styledata", () => addImages(this._map!));
+  init(container: HTMLDivElement) {
+    this._map = this.createMap(this._id, container);
+    this._map.getCanvas().style.cursor = "pointer";
+    this._map.on("styledata", () => this.addImages());
     this._userMarker = this.createUserMarker();
-  }
-
-  onLongPress(callback: (lngLat: LngLat) => Promise<void> | void) {
-    this.longPressCallback = callback;
+    this.onLoad();
   }
 
   onLoad(callback?: () => Promise<void> | void): void {
-    if (this._map?.loaded()) {
-      this.initLongPressEvent();
-      this.initGeolocateControl();
-      this.initCursorBehavior();
-      if (callback) callback();
-      return;
-    }
+    const run = () => {
+      this.initAll();
+      callback?.();
+    };
+    this._map?.loaded() ? run() : this._map?.on("load", run);
+  }
 
-    this._map?.on("load", () => {
-      this.initLongPressEvent();
-      this.initGeolocateControl();
-      this.initCursorBehavior();
-      if (callback) callback();
-    });
+  private initAll() {
+    this.initLongPressEvent();
+    this.initGeolocateControl();
+    this.initCursorBehavior();
+    this.initMarker();
+  }
+
+  private initMarker() {
+    this.addMarkers(this._initialDestinationMarkers);
   }
 
   onError(callback: (type: MapErrorType) => Promise<void> | void) {
@@ -68,8 +60,8 @@ export class MaplibreMapAdapter implements IMapAdapter {
     this._map?.on("error", (event) => {
       if (event.error.message !== "Failed to fetch") return;
       navigator.onLine
-        ? callback("fetch-failed-online")
-        : callback("fetch-failed-offline");
+        ? this.errorCallback?.("fetch-failed-online")
+        : this.errorCallback?.("fetch-failed-offline");
     });
   }
 
@@ -92,25 +84,51 @@ export class MaplibreMapAdapter implements IMapAdapter {
   }
 
   destroy(callback?: () => Promise<void> | void) {
-    if (this._timerId) {
-      clearInterval(this._timerId);
-      this._timerId = undefined;
-    }
-    this._timer = 0;
-
+    clearInterval(this._timerId);
+    this._timerId = undefined;
     if (this._animationId) {
       cancelAnimationFrame(this._animationId);
     }
+    this._userMarker?.remove();
+    this._map?.remove();
+    callback?.();
+  }
 
-    if (this._userMarker) {
-      this._userMarker.remove();
+  private createMap(id: string, container: HTMLDivElement) {
+    const { src, style, center, zoom, maxZoom, minZoom, sw, ne } =
+      mapStyles[id];
+    const protocol = new Protocol();
+    maplibregl.addProtocol("pmtiles", protocol.tile);
+    const pmtiles = new PMTiles(src);
+    const maxBounds =
+      sw && ne ? new maplibregl.LngLatBounds(sw, ne) : undefined;
+    protocol.add(pmtiles);
+    return new maplibregl.Map({
+      container,
+      center,
+      zoom,
+      maxZoom,
+      minZoom,
+      maxBounds,
+      style,
+      doubleClickZoom: false,
+      hash: true,
+    });
+  }
+
+  private addImages() {
+    if (!this._map) return;
+    for (const [name, src] of Object.entries(images)) {
+      if (this._map.hasImage(name)) continue;
+      const img = new Image(55, 64);
+
+      img.onload = () => {
+        // 非同期のため、ロード完了までに他で追加済みの可能性がある
+        if (this._map?.hasImage(name)) return;
+        this._map?.addImage(name, img);
+      };
+      img.src = src;
     }
-
-    if (this._map) {
-      this._map.remove();
-    }
-
-    if (callback) callback();
   }
 
   private initCursorBehavior() {
@@ -145,7 +163,9 @@ export class MaplibreMapAdapter implements IMapAdapter {
     ) => {
       if (this._timer >= 1 && !isMarker(event)) {
         const lngLat = new LngLat(event.lngLat.lng, event.lngLat.lat);
-        if (this.longPressCallback) this.longPressCallback(lngLat);
+        const d = new Destination(Date.now(), lngLat, "");
+        const dm = this._destinationMarkerService.createNewDestinationMarker(d);
+        this.addMarker(dm);
       }
       resetTimer();
     };

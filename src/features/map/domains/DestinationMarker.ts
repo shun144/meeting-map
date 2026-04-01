@@ -6,4 +6,12 @@ export class DestinationMarker {
     public destination: Destination,
     public status: DestinationMarkerStatus,
   ) {}
+
+  save() {
+    this.status = "SAVED";
+  }
+
+  isSave() {
+    return this.status === "SAVED";
+  }
 }

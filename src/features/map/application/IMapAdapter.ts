@@ -5,10 +5,8 @@ export type MapErrorType =
   | "out-of-bounds";
 
 export interface IMapAdapter {
-  init(id: string, container: HTMLDivElement): void;
+  init(container: HTMLDivElement): void;
   onError(callback: (type: MapErrorType) => Promise<void> | void): void;
-  onLoad(callback?: () => Promise<void> | void): void;
   onReady(callback: () => void): void;
-  onLongPress(callback: (lngLat: LngLat) => Promise<void> | void): void;
   destroy(callback?: () => Promise<void> | void): void;
 }

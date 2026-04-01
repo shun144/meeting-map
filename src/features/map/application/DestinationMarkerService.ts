@@ -1,26 +1,11 @@
-import type { DestinationRepository } from "@/features/map/domains/DestinationRepository";
-import { useMapStore } from "@/store/useMapStore";
 import { Destination } from "@/features/map/domains/Destination";
-import {
-  DestinationMarker,
-  type DestinationMarkerStatus,
-} from "@/features/map/lib/DestinationMarker";
+import type { DestinationRepository } from "@/features/map/domains/DestinationRepository";
+import { DestinationMarker } from "@/features/map/lib/DestinationMarker";
+import { useMapStore } from "@/store/useMapStore";
 import { toast } from "react-toastify";
 
 export class DestinationMarkerService {
   constructor(private readonly repo: DestinationRepository) {}
-
-  private addDestinationMarker(dm: DestinationMarker) {
-    useMapStore.getState().addMarkers(dm);
-    this.repo
-      .add(dm.destination)
-      .then(() => (dm.status = "SAVED"))
-      .catch((error) => {
-        console.error(error.message);
-        toast.error("目的地の保存に失敗しました");
-        dm.element.setOpacity("0.5");
-      });
-  }
 
   private saveDestinationMarker(dm: DestinationMarker, title: string) {
     dm.destination = new Destination(
@@ -31,26 +16,31 @@ export class DestinationMarkerService {
 
     switch (dm.status) {
       case "NEW":
-        this.addDestinationMarker(dm);
+        useMapStore.getState().addMarkers(dm);
+        this.repo
+          .add(dm.destination)
+          .then(() => (dm.status = "SAVED"))
+          .catch((error) => {
+            console.error(error.message);
+            toast.error("目的地の保存に失敗しました");
+            dm.element.setOpacity("0.5");
+          });
+
         break;
       case "SAVED":
-        this.updateDestinationMarker(dm);
+        this.repo
+          .update(dm.destination)
+          .then(() => useMapStore.getState().updateMarkers(dm))
+          .catch((error) => {
+            console.error(error.message);
+            toast.error("目的地の更新に失敗しました");
+            dm.element.setOpacity("0.5");
+          });
         break;
       default:
         console.error("想定外のタイプです");
         break;
     }
-  }
-
-  private updateDestinationMarker(dm: DestinationMarker) {
-    this.repo
-      .update(dm.destination)
-      .then(() => useMapStore.getState().updateMarkers(dm))
-      .catch((error) => {
-        console.error(error.message);
-        toast.error("目的地の更新に失敗しました");
-        dm.element.setOpacity("0.5");
-      });
   }
 
   private deleteDestinationMarker(dm: DestinationMarker) {

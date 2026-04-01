@@ -51,7 +51,7 @@ export class MaplibreDestinationMarker implements IDestinationMarker {
       "change",
       (event) => {
         const title = (event.target as HTMLInputElement).value;
-        if (onUpdateTitle) onUpdateTitle(title);
+        onUpdateTitle?.(title);
       },
       { signal: this.abortController.signal },
     );

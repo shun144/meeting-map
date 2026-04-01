@@ -1,30 +1,20 @@
-import { type DestinationRepository } from "@/features/map/domains/DestinationRepository";
 import useMapEvent from "@/features/map/hooks/useMapEvent";
-import SupabaseDestinationRepository from "@/features/map/infrastructure/SupabaseDestinationRepository";
-import { useMapStore } from "@/store/useMapStore";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRef } from "react";
 import { useParams } from "react-router";
-import { toast } from "react-toastify";
-import { DestinationMarkerService } from "../application/DestinationMarkerService";
 import MapLoading from "./MapLoading";
 
 const Map = () => {
   const { mapId } = useParams();
-  const repo = useMemo(
-    () => new SupabaseDestinationRepository(mapId!),
-    [mapId],
-  );
-  return <BaseMap mapId={mapId} repo={repo} />;
+  return <BaseMap mapId={mapId} />;
 };
 
 interface Props {
   mapId: string | undefined;
-  repo: DestinationRepository;
 }
 
-const BaseMap = ({ mapId, repo }: Props) => {
+const BaseMap = ({ mapId }: Props) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const { isMapReady } = useMapEvent(mapContainerRef, mapId, repo);
+  const { isMapReady } = useMapEvent(mapContainerRef, mapId);
 
   return (
     <div className="relative h-full w-full">
