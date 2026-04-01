@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import type { DestinationRepository } from "@/features/map/domains/DestinationRepository";
+import type { IMapAdapter } from "@/features/map/application/IMapAdapter";
+
 import { MaplibreMapAdapter } from "@/features/map/infrastructure/maplibre/MaplibreMapAdapter";
 import { DestinationMarkerService } from "@/features/map/application/DestinationMarkerService";
 import { useMapStore } from "@/store/useMapStore";
@@ -45,6 +47,13 @@ const useMapEvent = (
       onLongPress,
       onLoad,
     );
+
+    // const adapter = MaplibreMapAdapter.create(
+    //   mapId,
+    //   mapContainerRef.current,
+    //   onLongPress,
+    //   onLoad,
+    // );
 
     adapter.onError((type) => {
       switch (type) {

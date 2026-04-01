@@ -8,22 +8,10 @@ import {
 import { toast } from "react-toastify";
 
 export class DestinationMarkerService {
-  initializeMarkers: (payload: DestinationMarker[]) => void;
-  addStoreMarkers: (payload: DestinationMarker) => void;
-  updateStoreMarkers: (payload: DestinationMarker) => void;
-  filterStoreMarkers: (id: number) => void;
-
-  constructor(private readonly repo: DestinationRepository) {
-    const { initializeMarkers, addMarkers, updateMarkers, filterMarkers } =
-      useMapStore.getState();
-    this.initializeMarkers = initializeMarkers;
-    this.addStoreMarkers = addMarkers;
-    this.updateStoreMarkers = updateMarkers;
-    this.filterStoreMarkers = filterMarkers;
-  }
+  constructor(private readonly repo: DestinationRepository) {}
 
   private addDestinationMarker(dm: DestinationMarker) {
-    this.addStoreMarkers(dm);
+    useMapStore.getState().addMarkers(dm);
     this.repo
       .add(dm.destination)
       .then(() => (dm.status = "SAVED"))
@@ -57,7 +45,7 @@ export class DestinationMarkerService {
   private updateDestinationMarker(dm: DestinationMarker) {
     this.repo
       .update(dm.destination)
-      .then(() => this.updateStoreMarkers(dm))
+      .then(() => useMapStore.getState().updateMarkers(dm))
       .catch((error) => {
         console.error(error.message);
         toast.error("目的地の更新に失敗しました");
@@ -69,7 +57,7 @@ export class DestinationMarkerService {
     dm.dummyDelete();
     this.repo
       .delete(dm.destination.id)
-      .then(() => this.filterStoreMarkers(dm.destination.id))
+      .then(() => useMapStore.getState().filterMarkers(dm.destination.id))
       .catch((error) => {
         const message =
           error instanceof Error && error.message
@@ -122,7 +110,7 @@ export class DestinationMarkerService {
       return dm;
     });
 
-    this.initializeMarkers(dms);
+    useMapStore.getState().initializeMarkers(dms);
     return dms;
   };
 }
