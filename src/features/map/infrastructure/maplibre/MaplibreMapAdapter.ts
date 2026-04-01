@@ -9,7 +9,7 @@ import { isMarker, smoothMove } from "@/features/map/utils/marker";
 import { createUserMarkerElement } from "@/features/map/utils/userMarker";
 import { DestinationMarker } from "@/features/map/lib/DestinationMarker";
 
-export class MaplibreAdapter implements IMapAdapter {
+export class MaplibreMapAdapter implements IMapAdapter {
   private _map: maplibregl.Map | null = null;
   private _geolocateControl: maplibregl.GeolocateControl | null = null;
   private _timerId: number | undefined = undefined;
@@ -22,13 +22,14 @@ export class MaplibreAdapter implements IMapAdapter {
 
   private constructor() {}
 
+  // ファクトリメソッド
   static create(
     id: string,
     container: HTMLDivElement,
     onLongPress: (lngLat: LngLat) => Promise<void> | void,
     onLoad?: () => Promise<void> | void,
-  ): MaplibreAdapter {
-    const adapter = new MaplibreAdapter();
+  ): MaplibreMapAdapter {
+    const adapter = new MaplibreMapAdapter();
     adapter.init(id, container);
     adapter.onLongPress(onLongPress); // onLoad より前に呼ぶこと
     adapter.onLoad(onLoad);
@@ -83,10 +84,11 @@ export class MaplibreAdapter implements IMapAdapter {
 
   addMarker(dm: DestinationMarker) {
     dm.element.addTo(this._map!);
+    setTimeout(() => dm.element.togglePopup(), 0);
   }
 
-  openMarkerPopup(dm: DestinationMarker) {
-    setTimeout(() => dm.element.togglePopup(), 0);
+  addMarkers(dms: DestinationMarker[]) {
+    dms.forEach((dm) => dm.element.addTo(this._map!));
   }
 
   destroy(callback?: () => Promise<void> | void) {

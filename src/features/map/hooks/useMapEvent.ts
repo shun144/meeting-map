@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import type { DestinationRepository } from "@/features/map/domains/DestinationRepository";
-import { MaplibreAdapter } from "@/features/map/infrastructure/maplibre/MaplibreAdapter";
+import { MaplibreMapAdapter } from "@/features/map/infrastructure/maplibre/MaplibreMapAdapter";
 import { DestinationMarkerService } from "@/features/map/application/DestinationMarkerService";
 import { useMapStore } from "@/store/useMapStore";
 import type { LngLat } from "@/features/map/domains/valueObjects/LngLat";
@@ -15,34 +15,31 @@ const useMapEvent = (
 ) => {
   const [isMapReady, setIsMapReady] = useState(false);
   const navigate = useNavigate();
-  const { createDestinationMarker } = new DestinationMarkerService(repo);
-  const { addMarkers, cleanupMarkers } = useMapStore.getState();
+  const { createNewDestinationMarker, restoreDestinationMarker } =
+    new DestinationMarkerService(repo);
+  const { cleanupMarkers } = useMapStore.getState();
 
   useEffect(() => {
     if (!mapContainerRef.current || !mapId) return;
 
     const onLongPress = (lngLat: LngLat) => {
       const d = new Destination(Date.now(), lngLat, "");
-      const dm = createDestinationMarker(d, "NEW");
+      const dm = createNewDestinationMarker(d);
       adapter.addMarker(dm);
-      adapter.openMarkerPopup(dm);
     };
 
     const onLoad = async () => {
       try {
-        const allDestinationList = await repo.findAll();
-        allDestinationList.forEach((d) => {
-          const dm = createDestinationMarker(d, "SAVED");
-          adapter.addMarker(dm);
-          addMarkers(dm);
-        });
+        const ds = await repo.findAll();
+        const dms = restoreDestinationMarker(ds);
+        adapter.addMarkers(dms);
       } catch (error) {
         console.error(error);
         throw error;
       }
     };
 
-    const adapter = MaplibreAdapter.create(
+    const adapter = MaplibreMapAdapter.create(
       mapId,
       mapContainerRef.current,
       onLongPress,

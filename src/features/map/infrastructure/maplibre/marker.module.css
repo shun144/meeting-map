@@ -1,0 +1,49 @@
+@reference "@styles/index.css";
+
+.popup {
+  width: 220px;
+}
+
+.popupContainer {
+  width: 100%;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+}
+
+.popupInput {
+  min-width: 0;
+  flex: 1;
+  box-sizing: border-box;
+  padding: 8px 31px 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.deleteButton {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: #dc3545;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popupInput:focus {
+  border-color: #4285f4;
+}

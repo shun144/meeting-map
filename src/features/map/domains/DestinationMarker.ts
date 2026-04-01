@@ -1,5 +1,4 @@
-import type { Destination } from "../domains/Destination";
-import styles from "./marker.module.css";
+import type { Destination } from "@/features/map/domains/Destination";
 export type DestinationMarkerStatus = "NEW" | "SAVED";
 
 export class DestinationMarker {

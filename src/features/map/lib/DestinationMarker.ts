@@ -1,4 +1,4 @@
-import type { Destination } from "../domains/Destination";
+import type { Destination } from "@/features/map/domains/Destination";
 import maplibregl from "maplibre-gl";
 import styles from "./marker.module.css";
 export type DestinationMarkerStatus = "NEW" | "SAVED";

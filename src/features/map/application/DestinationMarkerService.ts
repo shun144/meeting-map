@@ -8,18 +8,22 @@ import {
 import { toast } from "react-toastify";
 
 export class DestinationMarkerService {
-  addMarkers: (payload: DestinationMarker) => void;
-  updateMarkers: (payload: DestinationMarker) => void;
-  filterMarkers: (id: number) => void;
+  initializeMarkers: (payload: DestinationMarker[]) => void;
+  addStoreMarkers: (payload: DestinationMarker) => void;
+  updateStoreMarkers: (payload: DestinationMarker) => void;
+  filterStoreMarkers: (id: number) => void;
+
   constructor(private readonly repo: DestinationRepository) {
-    const { addMarkers, updateMarkers, filterMarkers } = useMapStore.getState();
-    this.addMarkers = addMarkers;
-    this.updateMarkers = updateMarkers;
-    this.filterMarkers = filterMarkers;
+    const { initializeMarkers, addMarkers, updateMarkers, filterMarkers } =
+      useMapStore.getState();
+    this.initializeMarkers = initializeMarkers;
+    this.addStoreMarkers = addMarkers;
+    this.updateStoreMarkers = updateMarkers;
+    this.filterStoreMarkers = filterMarkers;
   }
 
   private addDestinationMarker(dm: DestinationMarker) {
-    this.addMarkers(dm);
+    this.addStoreMarkers(dm);
     this.repo
       .add(dm.destination)
       .then(() => (dm.status = "SAVED"))
@@ -30,10 +34,30 @@ export class DestinationMarkerService {
       });
   }
 
+  private saveDestinationMarker(dm: DestinationMarker, title: string) {
+    dm.destination = new Destination(
+      dm.destination.id,
+      dm.destination.lnglat,
+      title,
+    );
+
+    switch (dm.status) {
+      case "NEW":
+        this.addDestinationMarker(dm);
+        break;
+      case "SAVED":
+        this.updateDestinationMarker(dm);
+        break;
+      default:
+        console.error("想定外のタイプです");
+        break;
+    }
+  }
+
   private updateDestinationMarker(dm: DestinationMarker) {
     this.repo
       .update(dm.destination)
-      .then(() => this.updateMarkers(dm))
+      .then(() => this.updateStoreMarkers(dm))
       .catch((error) => {
         console.error(error.message);
         toast.error("目的地の更新に失敗しました");
@@ -45,7 +69,7 @@ export class DestinationMarkerService {
     dm.dummyDelete();
     this.repo
       .delete(dm.destination.id)
-      .then(() => this.filterMarkers(dm.destination.id))
+      .then(() => this.filterStoreMarkers(dm.destination.id))
       .catch((error) => {
         const message =
           error instanceof Error && error.message
@@ -56,29 +80,9 @@ export class DestinationMarkerService {
       });
   }
 
-  createDestinationMarker = (
-    destination: Destination,
-    status: DestinationMarkerStatus,
-  ) => {
-    const onChangeInput = (title: string) => {
-      dm.destination = new Destination(
-        dm.destination.id,
-        dm.destination.lnglat,
-        title,
-      );
-
-      switch (dm.status) {
-        case "NEW":
-          this.addDestinationMarker(dm);
-          break;
-        case "SAVED":
-          this.updateDestinationMarker(dm);
-          break;
-        default:
-          console.error("想定外のタイプです");
-          break;
-      }
-    };
+  createNewDestinationMarker = (destination: Destination) => {
+    const onChangeInput = (title: string) =>
+      this.saveDestinationMarker(dm, title);
 
     const onClickDelete = (title: string) => {
       if (title !== "" && !confirm("この目的地を削除しますか？")) {
@@ -89,11 +93,36 @@ export class DestinationMarkerService {
 
     const dm = new DestinationMarker(
       destination,
-      status,
+      "NEW",
       onChangeInput,
       onClickDelete,
     );
 
     return dm;
+  };
+
+  restoreDestinationMarker = (destinations: Destination[]) => {
+    const dms = destinations.map((d) => {
+      const onChangeInput = (title: string) =>
+        this.saveDestinationMarker(dm, title);
+
+      const onClickDelete = (title: string) => {
+        if (title !== "" && !confirm("この目的地を削除しますか？")) {
+          return;
+        }
+        this.deleteDestinationMarker(dm);
+      };
+
+      const dm = new DestinationMarker(
+        d,
+        "SAVED",
+        onChangeInput,
+        onClickDelete,
+      );
+      return dm;
+    });
+
+    this.initializeMarkers(dms);
+    return dms;
   };
 }
