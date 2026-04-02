@@ -1,40 +1,42 @@
+import type { IDestinationMarkerFactory } from "./IDestinationMarkerFactory";
+import { type IDestinationMarker } from "@/features/map/application/IDestinationMarker";
 import { Destination } from "@/features/map/domains/Destination";
-import type { DestinationRepository } from "@/features/map/domains/DestinationRepository";
-import { DestinationMarker } from "@/features/map/lib/DestinationMarker";
-import { useMapStore } from "@/store/useMapStore";
+import { DestinationMarker } from "@/features/map/domains/DestinationMarker";
+import { type DestinationRepository } from "@/features/map/domains/DestinationRepository";
 import { toast } from "react-toastify";
+import type { MarkerStoreActions } from "./MarkerStoreActions";
 
 export class DestinationMarkerService {
-  constructor(private readonly repo: DestinationRepository) {}
+  constructor(
+    private readonly repo: DestinationRepository,
+    private readonly markerFactory: IDestinationMarkerFactory,
+    private readonly storeActions: MarkerStoreActions,
+  ) {}
 
-  private saveDestinationMarker(dm: DestinationMarker, title: string) {
-    dm.destination = new Destination(
-      dm.destination.id,
-      dm.destination.lnglat,
-      title,
-    );
+  private saveDestinationMarker(marker: IDestinationMarker, title: string) {
+    marker.updateDestination(marker.getDestination().lnglat, title);
 
-    switch (dm.status) {
+    switch (marker.getStatus()) {
       case "NEW":
-        useMapStore.getState().addMarkers(dm);
+        this.storeActions.addMarker(marker);
         this.repo
-          .add(dm.destination)
-          .then(() => (dm.status = "SAVED"))
+          .add(marker.getDestination())
+          .then(() => marker.setSave())
           .catch((error) => {
             console.error(error.message);
             toast.error("目的地の保存に失敗しました");
-            dm.element.setOpacity("0.5");
+            marker.setError();
           });
 
         break;
       case "SAVED":
         this.repo
-          .update(dm.destination)
-          .then(() => useMapStore.getState().updateMarkers(dm))
+          .update(marker.getDestination())
+          .then(() => this.storeActions.updateMarker(marker))
           .catch((error) => {
             console.error(error.message);
             toast.error("目的地の更新に失敗しました");
-            dm.element.setOpacity("0.5");
+            marker.setError();
           });
         break;
       default:
@@ -43,64 +45,29 @@ export class DestinationMarkerService {
     }
   }
 
-  private deleteDestinationMarker(dm: DestinationMarker) {
-    dm.dummyDelete();
-    this.repo
-      .delete(dm.destination.id)
-      .then(() => useMapStore.getState().filterMarkers(dm.destination.id))
-      .catch((error) => {
-        const message =
-          error instanceof Error && error.message
-            ? error.message
-            : "目的地の削除に失敗しました";
-        toast.error(message);
-        dm.restoreFromDummyDelete();
-      });
-  }
-
   createNewDestinationMarker = (destination: Destination) => {
-    const onChangeInput = (title: string) =>
-      this.saveDestinationMarker(dm, title);
-
-    const onClickDelete = (title: string) => {
-      if (title !== "" && !confirm("この目的地を削除しますか？")) {
-        return;
-      }
-      this.deleteDestinationMarker(dm);
-    };
-
-    const dm = new DestinationMarker(
-      destination,
-      "NEW",
-      onChangeInput,
-      onClickDelete,
+    const dm = new DestinationMarker(destination, "NEW");
+    const marker = this.markerFactory.create(
+      dm,
+      (title: string) => this.saveDestinationMarker(marker, title),
+      () => this.repo.delete(dm.destination.id),
     );
 
-    return dm;
+    return marker;
   };
 
   restoreDestinationMarker = (destinations: Destination[]) => {
-    const dms = destinations.map((d) => {
-      const onChangeInput = (title: string) =>
-        this.saveDestinationMarker(dm, title);
-
-      const onClickDelete = (title: string) => {
-        if (title !== "" && !confirm("この目的地を削除しますか？")) {
-          return;
-        }
-        this.deleteDestinationMarker(dm);
-      };
-
-      const dm = new DestinationMarker(
-        d,
-        "SAVED",
-        onChangeInput,
-        onClickDelete,
+    const markers = destinations.map((destination) => {
+      const dm = new DestinationMarker(destination, "SAVED");
+      const marker = this.markerFactory.create(
+        dm,
+        (title: string) => this.saveDestinationMarker(marker, title),
+        () => this.repo.delete(dm.destination.id),
       );
-      return dm;
+      return marker;
     });
 
-    useMapStore.getState().initializeMarkers(dms);
-    return dms;
+    this.storeActions.initializeMarkers(markers);
+    return markers;
   };
 }

@@ -1,13 +1,35 @@
 import maplibregl from "maplibre-gl";
 import { DestinationMarker } from "@/features/map/domains/DestinationMarker";
 import styles from "./marker.module.css";
-import type { IDestinationMarker } from "../../application/IDestinationMarker";
+import type { IDestinationMarker } from "@/features/map/application/IDestinationMarker";
+import type { LngLat } from "@/features/map/domains/valueObjects/LngLat";
 
 export class MaplibreDestinationMarker implements IDestinationMarker {
   private element: maplibregl.Marker;
   private inputElem: HTMLInputElement;
   private deleteButton: HTMLButtonElement;
   private abortController = new AbortController();
+  private dm: DestinationMarker;
+
+  getDestination() {
+    return this.dm.destination;
+  }
+
+  getStatus() {
+    return this.dm.status;
+  }
+
+  setSave() {
+    this.dm.save();
+  }
+
+  addToMap(map: unknown) {
+    this.element.addTo(map as maplibregl.Map);
+  }
+
+  updateDestination(lngLat: LngLat, title: string) {
+    this.dm.updateDestination(lngLat, title);
+  }
 
   create(
     dm: DestinationMarker,
@@ -18,6 +40,8 @@ export class MaplibreDestinationMarker implements IDestinationMarker {
       color: "#4285F4",
       className: styles.marker,
     });
+
+    this.dm = dm;
 
     this.element.setLngLat(dm.destination.lnglat);
     this.element
@@ -123,6 +147,10 @@ export class MaplibreDestinationMarker implements IDestinationMarker {
   rollbackDelete() {
     this.element.setOpacity("1");
     this.element.getElement().style.pointerEvents = "auto";
+  }
+
+  setError() {
+    this.element.setOpacity("0.5");
   }
 
   popup() {

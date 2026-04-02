@@ -1,4 +1,5 @@
-import type { Destination } from "@/features/map/domains/Destination";
+import { Destination } from "@/features/map/domains/Destination";
+import type { LngLat } from "./valueObjects/LngLat";
 export type DestinationMarkerStatus = "NEW" | "SAVED";
 
 export class DestinationMarker {
@@ -13,5 +14,9 @@ export class DestinationMarker {
 
   isSave() {
     return this.status === "SAVED";
+  }
+
+  updateDestination(lngLat: LngLat, title: string) {
+    this.destination = new Destination(this.destination.id, lngLat, title);
   }
 }

@@ -1,13 +1,13 @@
 import { images } from "@/assets/icon";
 import { mapStyles } from "@/config/mapStyle";
 import { DestinationMarkerService } from "@/features/map/application/DestinationMarkerService";
+import type { IDestinationMarker } from "@/features/map/application/IDestinationMarker";
 import type {
   IMapAdapter,
   MapErrorType,
 } from "@/features/map/application/IMapAdapter";
 import { Destination } from "@/features/map/domains/Destination";
 import { LngLat } from "@/features/map/domains/valueObjects/LngLat";
-import { DestinationMarker } from "@/features/map/lib/DestinationMarker";
 import { isMarker, smoothMove } from "@/features/map/utils/marker";
 import { createUserMarkerElement } from "@/features/map/utils/userMarker";
 import maplibregl from "maplibre-gl";
@@ -25,7 +25,7 @@ export class MaplibreMapAdapter implements IMapAdapter {
   constructor(
     private _id: string,
     private _destinationMarkerService: DestinationMarkerService,
-    private _initialDestinationMarkers: DestinationMarker[],
+    private _initialDestinationMarkers: IDestinationMarker[],
   ) {}
 
   init(container: HTMLDivElement) {
@@ -74,13 +74,13 @@ export class MaplibreMapAdapter implements IMapAdapter {
     this._map?.on("idle", handler);
   }
 
-  addMarker(dm: DestinationMarker) {
-    dm.element.addTo(this._map!);
-    setTimeout(() => dm.element.togglePopup(), 0);
+  addMarker(marker: IDestinationMarker) {
+    marker.addToMap(this._map!);
+    marker.popup();
   }
 
-  addMarkers(dms: DestinationMarker[]) {
-    dms.forEach((dm) => dm.element.addTo(this._map!));
+  addMarkers(markers: IDestinationMarker[]) {
+    markers.forEach((marker) => marker.addToMap(this._map!));
   }
 
   destroy(callback?: () => Promise<void> | void) {

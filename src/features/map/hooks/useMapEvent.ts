@@ -2,8 +2,9 @@ import { useMapStore } from "@/store/useMapStore";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
-import { MapAdapterFactory } from "@/features/map/application/MapAdapterFactory";
+import { MapAdapterFactory } from "@/features/map/infrastructure/maplibre/MapAdapterFactory";
 import { type IMapAdapter } from "@/features/map/application/IMapAdapter";
+import type { MarkerStoreActions } from "../application/MarkerStoreActions";
 
 const useMapEvent = (
   mapContainerRef: React.RefObject<HTMLDivElement | null>,
@@ -20,7 +21,19 @@ const useMapEvent = (
     let cancelled = false;
 
     (async () => {
-      mapAdapter = await MapAdapterFactory.create(mapId, container);
+      const storeActions: MarkerStoreActions = {
+        addMarker: (marker) => useMapStore.getState().addMarker(marker),
+        updateMarker: (marker) => useMapStore.getState().updateMarker(marker),
+        initializeMarkers: (markers) =>
+          useMapStore.getState().initializeMarkers(markers),
+        cleanupMarkers: () => useMapStore.getState().cleanupMarkers(),
+      };
+
+      mapAdapter = await MapAdapterFactory.create(
+        mapId,
+        container,
+        storeActions,
+      );
       if (cancelled) {
         mapAdapter.destroy();
         return;
