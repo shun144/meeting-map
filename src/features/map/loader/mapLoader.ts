@@ -1,4 +1,4 @@
-import { type MapRepository } from "@/features/map/domains/MapRepository";
+import { type MapRepository } from "@/features/map/domains/repositories/MapRepository";
 
 export const mapLoader = async (
   repo: MapRepository,

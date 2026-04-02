@@ -1,5 +1,5 @@
 import { mapLoader } from "@/features/map/loader/mapLoader";
-import { type MapRepository } from "@/features/map/domains/MapRepository";
+import { type MapRepository } from "@/features/map/domains/repositories/MapRepository";
 
 describe("ローダーテスト", () => {
   test("マップが存在していればtrueを返す", async () => {

@@ -1,4 +1,4 @@
-import type { Destination } from "./Destination";
+import type { Destination } from "../entities/Destination";
 
 export interface DestinationRepository {
   add(destination: Destination): Promise<void>;

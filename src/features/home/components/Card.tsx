@@ -1,6 +1,6 @@
 import { type FC } from "react";
 import { NavLink } from "react-router";
-import type { Map } from "@/features/map/domains/Map";
+import type { Map } from "@/features/map/domains/entities/Map";
 
 interface Props {
   map: Map;

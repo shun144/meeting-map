@@ -1,6 +1,6 @@
 import { memo, type FC } from "react";
 import Card from "./Card";
-import type { Map } from "@/features/map/domains/Map";
+import type { Map } from "@/features/map/domains/entities/Map";
 
 interface Props {
   mapList: Map[];

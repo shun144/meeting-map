@@ -1,4 +1,4 @@
-import { DestinationMarker } from "@/features/map/domains/DestinationMarker";
+import { DestinationMarker } from "@/features/map/domains/entities/DestinationMarker";
 import { MaplibreDestinationMarker } from "@/features/map/infrastructure/maplibre/MaplibreDestinationMarker";
 import { type IDestinationMarker } from "@/features/map/application/IDestinationMarker";
 import type { IDestinationMarkerFactory } from "@/features/map/application/IDestinationMarkerFactory";

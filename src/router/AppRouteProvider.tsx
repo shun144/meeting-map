@@ -3,7 +3,7 @@ import Layout from "@/components/ui/Layout";
 import Map from "@/features/map/components/Map";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import NotFound from "./NotFound";
-import { SupabaseMapRepository } from "@/features/map/infrastructure/SupabaseMapRepository";
+import { SupabaseMapRepository } from "@/features/map/infrastructure/supabase/SupabaseMapRepository";
 import { mapLoader } from "@/features/map/loader/mapLoader";
 import MapNotFound from "@/features/map/components/MapNotFound";
 

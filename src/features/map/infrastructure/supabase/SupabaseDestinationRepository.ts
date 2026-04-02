@@ -1,5 +1,5 @@
-import type { Destination } from "@/features/map/domains/Destination";
-import type { DestinationRepository } from "@/features/map/domains/DestinationRepository";
+import type { Destination } from "@/features/map/domains/entities/Destination";
+import type { DestinationRepository } from "@/features/map/domains/repositories/DestinationRepository";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { toDTO, fromDTO } from "./destinationMapper";
 import { type Tables } from "@/lib/supabase/schema";

@@ -4,7 +4,7 @@ export type MapErrorType =
   | "fetch-failed-online"
   | "out-of-bounds";
 
-export interface IMapAdapter {
+export interface IMap {
   init(container: HTMLDivElement): void;
   onError(callback: (type: MapErrorType) => Promise<void> | void): void;
   onReady(callback: () => void): void;

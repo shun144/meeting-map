@@ -2,18 +2,15 @@ import { images } from "@/assets/icon";
 import { mapStyles } from "@/config/mapStyle";
 import { DestinationMarkerService } from "@/features/map/application/DestinationMarkerService";
 import type { IDestinationMarker } from "@/features/map/application/IDestinationMarker";
-import type {
-  IMapAdapter,
-  MapErrorType,
-} from "@/features/map/application/IMapAdapter";
-import { Destination } from "@/features/map/domains/Destination";
+import type { IMap, MapErrorType } from "@/features/map/application/IMap";
+import { Destination } from "@/features/map/domains/entities/Destination";
 import { LngLat } from "@/features/map/domains/valueObjects/LngLat";
 import { isMarker, smoothMove } from "@/features/map/utils/marker";
 import { createUserMarkerElement } from "@/features/map/utils/userMarker";
 import maplibregl from "maplibre-gl";
 import { PMTiles, Protocol } from "pmtiles";
 
-export class MaplibreMapAdapter implements IMapAdapter {
+export class MaplibreMap implements IMap {
   private _map: maplibregl.Map | null = null;
   private _geolocateControl: maplibregl.GeolocateControl | null = null;
   private _timerId: number | undefined = undefined;

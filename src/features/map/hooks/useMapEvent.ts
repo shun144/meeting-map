@@ -2,8 +2,8 @@ import { useMapStore } from "@/store/useMapStore";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
-import { MapAdapterFactory } from "@/features/map/infrastructure/maplibre/MapAdapterFactory";
-import { type IMapAdapter } from "@/features/map/application/IMapAdapter";
+import { MapFactory } from "@/features/map/infrastructure/maplibre/MapFactory";
+import { type IMap } from "@/features/map/application/IMap";
 import type { MarkerStoreActions } from "../application/MarkerStoreActions";
 
 const useMapEvent = (
@@ -17,7 +17,7 @@ const useMapEvent = (
     const container = mapContainerRef.current;
     if (!container || !mapId) return;
 
-    let mapAdapter: IMapAdapter | null = null;
+    let map: IMap | null = null;
     let cancelled = false;
 
     (async () => {
@@ -29,17 +29,13 @@ const useMapEvent = (
         cleanupMarkers: () => useMapStore.getState().cleanupMarkers(),
       };
 
-      mapAdapter = await MapAdapterFactory.create(
-        mapId,
-        container,
-        storeActions,
-      );
+      map = await MapFactory.create(mapId, container, storeActions);
       if (cancelled) {
-        mapAdapter.destroy();
+        map.destroy();
         return;
       }
 
-      mapAdapter.onError((type) => {
+      map.onError((type) => {
         switch (type) {
           case "fetch-failed-online":
             toast.error("地図データの読み込みに失敗しました", {
@@ -54,12 +50,12 @@ const useMapEvent = (
             break;
         }
       });
-      mapAdapter.onReady(() => setIsMapReady(true));
+      map.onReady(() => setIsMapReady(true));
     })();
 
     return () => {
       cancelled = true;
-      mapAdapter?.destroy();
+      map?.destroy();
       useMapStore.getState().cleanupMarkers();
     };
   }, [mapId]);

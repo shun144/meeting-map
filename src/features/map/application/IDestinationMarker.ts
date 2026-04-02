@@ -1,8 +1,8 @@
 import {
   DestinationMarker,
   type DestinationMarkerStatus,
-} from "@/features/map/domains/DestinationMarker";
-import type { Destination } from "../domains/Destination";
+} from "@/features/map/domains/entities/DestinationMarker";
+import type { Destination } from "../domains/entities/Destination";
 import type { LngLat } from "../domains/valueObjects/LngLat";
 
 export interface IDestinationMarker {

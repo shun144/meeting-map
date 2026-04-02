@@ -1,4 +1,4 @@
-import { SupabaseMapRepository } from "@/features/map/infrastructure/SupabaseMapRepository";
+import { SupabaseMapRepository } from "@/features/map/infrastructure/supabase/SupabaseMapRepository";
 
 const { mockEq2 } = vi.hoisted(() => ({
   mockEq2: vi.fn().mockResolvedValue({ count: 1, error: null }),

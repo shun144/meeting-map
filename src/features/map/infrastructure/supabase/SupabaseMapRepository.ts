@@ -1,8 +1,8 @@
 import { supabase } from "@/lib/supabase/supabaseClient";
-import { Map } from "@/features/map/domains/Map";
-import { fromDTO } from "@/features/map/infrastructure/mapMapper";
+import { Map } from "@/features/map/domains/entities/Map";
+import { fromDTO } from "@/features/map/infrastructure/supabase/mapMapper";
 import type { Tables } from "@/lib/supabase/schema";
-import { type MapRepository } from "@/features/map/domains//MapRepository";
+import { type MapRepository } from "@/features/map/domains/repositories/MapRepository";
 
 export class SupabaseMapRepository implements MapRepository {
   constructor() {}

@@ -1,4 +1,4 @@
-import { Destination } from "@/features/map/domains/Destination";
+import { Destination } from "@/features/map/domains/entities/Destination";
 import { type Tables } from "@/lib/supabase/schema";
 import { LngLat } from "@/features/map/domains/valueObjects/LngLat";
 

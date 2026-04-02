@@ -1,6 +1,6 @@
-import { SupabaseMapRepository } from "@/features/map/infrastructure/SupabaseMapRepository";
+import { SupabaseMapRepository } from "@/features/map/infrastructure/supabase/SupabaseMapRepository";
 import { useEffect, useMemo, useState } from "react";
-import type { Map } from "@/features/map/domains/Map";
+import type { Map } from "@/features/map/domains/entities/Map";
 
 export const useHome = () => {
   const repo = useMemo(() => new SupabaseMapRepository(), []);

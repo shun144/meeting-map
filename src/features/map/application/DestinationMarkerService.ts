@@ -1,8 +1,8 @@
 import type { IDestinationMarkerFactory } from "./IDestinationMarkerFactory";
 import { type IDestinationMarker } from "@/features/map/application/IDestinationMarker";
-import { Destination } from "@/features/map/domains/Destination";
-import { DestinationMarker } from "@/features/map/domains/DestinationMarker";
-import { type DestinationRepository } from "@/features/map/domains/DestinationRepository";
+import { Destination } from "@/features/map/domains/entities/Destination";
+import { DestinationMarker } from "@/features/map/domains/entities/DestinationMarker";
+import { type DestinationRepository } from "@/features/map/domains/repositories/DestinationRepository";
 import { toast } from "react-toastify";
 import type { MarkerStoreActions } from "./MarkerStoreActions";
 

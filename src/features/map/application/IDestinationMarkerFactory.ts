@@ -1,4 +1,4 @@
-import type { DestinationMarker } from "../domains/DestinationMarker";
+import type { DestinationMarker } from "../domains/entities/DestinationMarker";
 import type { IDestinationMarker } from "./IDestinationMarker";
 
 export interface IDestinationMarkerFactory {

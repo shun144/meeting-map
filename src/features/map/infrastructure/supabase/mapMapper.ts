@@ -1,4 +1,4 @@
-import { Map } from "@/features/map/domains/Map";
+import { Map } from "@/features/map/domains/entities/Map";
 import { type Tables } from "@/lib/supabase/schema";
 
 export interface MapDTO {

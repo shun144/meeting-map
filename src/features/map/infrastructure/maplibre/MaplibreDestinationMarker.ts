@@ -1,5 +1,5 @@
 import maplibregl from "maplibre-gl";
-import { DestinationMarker } from "@/features/map/domains/DestinationMarker";
+import { DestinationMarker } from "@/features/map/domains/entities/DestinationMarker";
 import styles from "./marker.module.css";
 import type { IDestinationMarker } from "@/features/map/application/IDestinationMarker";
 import type { LngLat } from "@/features/map/domains/valueObjects/LngLat";

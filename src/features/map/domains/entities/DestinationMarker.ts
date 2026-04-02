@@ -1,5 +1,5 @@
-import { Destination } from "@/features/map/domains/Destination";
-import type { LngLat } from "./valueObjects/LngLat";
+import { Destination } from "@/features/map/domains/entities/Destination";
+import type { LngLat } from "../valueObjects/LngLat";
 export type DestinationMarkerStatus = "NEW" | "SAVED";
 
 export class DestinationMarker {
