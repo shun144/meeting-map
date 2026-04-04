@@ -31,7 +31,7 @@ const useMapEvent = (
 
       map = await MapFactory.create(mapId, container, storeActions);
       if (cancelled) {
-        map.destroy();
+        map?.destroy();
         return;
       }
 

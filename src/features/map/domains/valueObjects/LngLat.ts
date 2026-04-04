@@ -9,8 +9,4 @@ export class LngLat {
     this.lng = lng;
     this.lat = lat;
   }
-
-  equal(other: LngLat) {
-    return this.lng === other.lng && this.lat === other.lat;
-  }
 }

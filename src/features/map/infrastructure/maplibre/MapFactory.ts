@@ -3,7 +3,7 @@ import { type IMap } from "@/features/map/application/IMap";
 import { MaplibreMap } from "@/features/map/infrastructure/maplibre/MaplibreMap";
 import SupabaseDestinationRepository from "@/features/map/infrastructure/supabase/SupabaseDestinationRepository";
 import { DestinationMarkerFactory } from "./DestinationMarkerFactory";
-import type { MarkerStoreActions } from "../../application/MarkerStoreActions";
+import type { MarkerStoreActions } from "@/features/map/application/MarkerStoreActions";
 
 export class MapFactory {
   private constructor() {}

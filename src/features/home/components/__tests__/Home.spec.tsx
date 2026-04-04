@@ -4,7 +4,7 @@ import { createRoutesStub } from "react-router";
 
 const mockFindAll = vi.fn();
 
-vi.mock("@/features/map/infrastructure/SupabaseMapRepository", () => ({
+vi.mock("@/features/map/infrastructure/supabase/SupabaseMapRepository", () => ({
   SupabaseMapRepository: class {
     findAll = mockFindAll;
   },
