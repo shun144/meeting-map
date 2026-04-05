@@ -1,9 +1,9 @@
-import type { DestinationMarker } from "../domains/entities/DestinationMarker";
-import type { IDestinationMarker } from "./IDestinationMarker";
+import type { Destination } from "@/features/map/domains/entities/Destination";
+import type { IDestinationMarker } from "@/features/map/application/IDestinationMarker";
 
 export interface IDestinationMarkerFactory {
   create(
-    dm: DestinationMarker,
+    destination: Destination,
     onUpdateTitle?: (title: string) => void,
     onDelete?: () => Promise<void>,
   ): IDestinationMarker;

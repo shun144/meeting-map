@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useState, type FC } from "react";
-import { clearCache } from "@/lib/indexedDB/database";
+import { CacheService } from "@/features/map/application/CacheService";
 
 interface Props {
   isClearing: boolean;
@@ -7,7 +7,7 @@ interface Props {
 }
 
 const CacheClearSection: FC<Props> = ({ isClearing, setIsClearing }) => {
-  const [clearSuccess, setClearSuccess] = useState(false);
+  const [isClearSuccess, setIsClearSuccess] = useState(false);
 
   const handleClearCache = useCallback(async () => {
     const msg =
@@ -17,9 +17,9 @@ const CacheClearSection: FC<Props> = ({ isClearing, setIsClearing }) => {
 
     setIsClearing(true);
     try {
-      await clearCache();
-      setClearSuccess(true);
-      setTimeout(() => setClearSuccess(false), 3000);
+      await CacheService.clearCache();
+      setIsClearSuccess(true);
+      setTimeout(() => setIsClearSuccess(false), 3000);
     } catch (error) {
       console.error("キャッシュクリア失敗", error);
       alert("キャッシュクリアに失敗しました");
@@ -65,7 +65,7 @@ const CacheClearSection: FC<Props> = ({ isClearing, setIsClearing }) => {
         )}
       </button>
 
-      {clearSuccess && (
+      {isClearSuccess && (
         <p className="text-xs text-green-500 flex items-center gap-1">
           <svg
             className="w-3.5 h-3.5"

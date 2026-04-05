@@ -1,4 +1,4 @@
-import { DestinationMarkerService } from "@/features/map/application/DestinationMarkerService";
+import { DestinationService } from "@/features/map/application/DestinationService";
 import { type IMap } from "@/features/map/application/IMap";
 import { MaplibreMap } from "@/features/map/infrastructure/maplibre/MaplibreMap";
 import SupabaseDestinationRepository from "@/features/map/infrastructure/supabase/SupabaseDestinationRepository";
@@ -15,11 +15,7 @@ export class MapFactory {
   ): Promise<IMap> {
     const repo = new SupabaseDestinationRepository(id);
     const markerFactory = new DestinationMarkerFactory();
-    const service = new DestinationMarkerService(
-      repo,
-      markerFactory,
-      storeActions,
-    );
+    const service = new DestinationService(repo, markerFactory, storeActions);
 
     const initialDestinations = await repo.findAll();
     const initialDestinationMarkers =

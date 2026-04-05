@@ -1,12 +1,11 @@
-import type { IDestinationMarkerFactory } from "./IDestinationMarkerFactory";
 import { type IDestinationMarker } from "@/features/map/application/IDestinationMarker";
 import { Destination } from "@/features/map/domains/entities/Destination";
-import { DestinationMarker } from "@/features/map/domains/entities/DestinationMarker";
 import { type DestinationRepository } from "@/features/map/domains/repositories/DestinationRepository";
 import { toast } from "react-toastify";
+import type { IDestinationMarkerFactory } from "./IDestinationMarkerFactory";
 import type { MarkerStoreActions } from "./MarkerStoreActions";
 
-export class DestinationMarkerService {
+export class DestinationService {
   constructor(
     private readonly repo: DestinationRepository,
     private readonly markerFactory: IDestinationMarkerFactory,
@@ -14,7 +13,7 @@ export class DestinationMarkerService {
   ) {}
 
   private saveDestinationMarker(marker: IDestinationMarker, title: string) {
-    marker.updateDestination(marker.getDestination().lnglat, title);
+    marker.updateDestination(title);
 
     switch (marker.getStatus()) {
       case "NEW":
@@ -45,29 +44,27 @@ export class DestinationMarkerService {
     }
   }
 
-  createNewDestinationMarker = (destination: Destination) => {
-    const dm = new DestinationMarker(destination, "NEW");
+  createNewDestinationMarker(destination: Destination) {
     const marker = this.markerFactory.create(
-      dm,
+      destination,
       (title: string) => this.saveDestinationMarker(marker, title),
-      () => this.repo.delete(dm.destination.id),
+      () => this.repo.delete(destination.id),
     );
 
     return marker;
-  };
+  }
 
-  restoreDestinationMarker = (destinations: Destination[]) => {
+  restoreDestinationMarker(destinations: Destination[]) {
     const markers = destinations.map((destination) => {
-      const dm = new DestinationMarker(destination, "SAVED");
       const marker = this.markerFactory.create(
-        dm,
+        destination,
         (title: string) => this.saveDestinationMarker(marker, title),
-        () => this.repo.delete(dm.destination.id),
+        () => this.repo.delete(destination.id),
       );
       return marker;
     });
 
     this.storeActions.initializeMarkers(markers);
     return markers;
-  };
+  }
 }

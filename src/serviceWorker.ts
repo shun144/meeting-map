@@ -180,7 +180,7 @@ async function handleAllMapsRequest(event: FetchEvent) {
 }
 
 async function handlePMTilesRequest(event: FetchEvent, url: URL) {
-  const regex = /(?<version>version\d+)\/(?<area>[^\/]+)\.pmtiles$/;
+  const regex = /(?<version>version\d+)\/(?<area>[^/]+)\.pmtiles$/;
   const matchGroups = url.pathname?.match(regex)?.groups;
   if (!matchGroups) {
     return new Response(

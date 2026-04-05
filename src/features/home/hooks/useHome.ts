@@ -13,7 +13,7 @@ export const useHome = () => {
       try {
         const data = await repo.findAll();
         setMapList(data);
-      } catch (error) {
+      } catch {
         setMapList([]);
       } finally {
         setIsLoaded(true);

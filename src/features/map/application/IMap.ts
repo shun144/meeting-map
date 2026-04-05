@@ -1,4 +1,3 @@
-import type { LngLat } from "@/features/map/domains/valueObjects/LngLat";
 export type MapErrorType =
   | "fetch-failed-offline"
   | "fetch-failed-online"

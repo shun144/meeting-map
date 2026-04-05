@@ -1,6 +1,6 @@
 import { images } from "@/assets/icon";
 import { mapStyles } from "@/config/mapStyle";
-import { DestinationMarkerService } from "@/features/map/application/DestinationMarkerService";
+import { DestinationService } from "@/features/map/application/DestinationService";
 import type { IDestinationMarker } from "@/features/map/application/IDestinationMarker";
 import type { IMap, MapErrorType } from "@/features/map/application/IMap";
 import { Destination } from "@/features/map/domains/entities/Destination";
@@ -21,7 +21,7 @@ export class MaplibreMap implements IMap {
 
   constructor(
     private _id: string,
-    private _destinationMarkerService: DestinationMarkerService,
+    private _service: DestinationService,
     private _initialDestinationMarkers: IDestinationMarker[],
   ) {}
 
@@ -160,9 +160,9 @@ export class MaplibreMap implements IMap {
     ) => {
       if (this._timer >= 1 && !isMarker(event)) {
         const lngLat = new LngLat(event.lngLat.lng, event.lngLat.lat);
-        const d = new Destination(Date.now(), lngLat, "");
-        const dm = this._destinationMarkerService.createNewDestinationMarker(d);
-        this.addMarker(dm);
+        const destination = new Destination(Date.now(), lngLat, "", "NEW");
+        const marker = this._service.createNewDestinationMarker(destination);
+        this.addMarker(marker);
       }
       resetTimer();
     };

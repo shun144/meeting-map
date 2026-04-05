@@ -1,38 +1,37 @@
-import maplibregl from "maplibre-gl";
-import { DestinationMarker } from "@/features/map/domains/entities/DestinationMarker";
-import styles from "./marker.module.css";
 import type { IDestinationMarker } from "@/features/map/application/IDestinationMarker";
-import type { LngLat } from "@/features/map/domains/valueObjects/LngLat";
+import { Destination } from "@/features/map/domains/entities/Destination";
+import maplibregl from "maplibre-gl";
+import styles from "./marker.module.css";
 
 export class MaplibreDestinationMarker implements IDestinationMarker {
   private element: maplibregl.Marker;
   private inputElem: HTMLInputElement;
   private deleteButton: HTMLButtonElement;
   private abortController = new AbortController();
-  private dm: DestinationMarker;
+  private destination: Destination;
 
   getDestination() {
-    return this.dm.destination;
+    return this.destination;
   }
 
   getStatus() {
-    return this.dm.status;
+    return this.destination.persistenceStatus;
   }
 
   setSave() {
-    this.dm.save();
+    this.destination.save();
   }
 
   addToMap(map: unknown) {
     this.element.addTo(map as maplibregl.Map);
   }
 
-  updateDestination(lngLat: LngLat, title: string) {
-    this.dm.updateDestination(lngLat, title);
+  updateDestination(title: string) {
+    this.destination.update(title);
   }
 
   create(
-    dm: DestinationMarker,
+    destination: Destination,
     onUpdateTitle?: (title: string) => void,
     onDelete?: () => Promise<void>,
   ): MaplibreDestinationMarker {
@@ -41,12 +40,12 @@ export class MaplibreDestinationMarker implements IDestinationMarker {
       className: styles.marker,
     });
 
-    this.dm = dm;
+    this.destination = destination;
 
-    this.element.setLngLat(dm.destination.lnglat);
+    this.element.setLngLat(this.destination.lnglat);
     this.element
       .getElement()
-      .setAttribute("data-destination-marker-id", String(dm.destination.id));
+      .setAttribute("data-destination-marker-id", String(this.destination.id));
 
     this.element.getElement().style.cursor = "pointer";
 
@@ -61,7 +60,7 @@ export class MaplibreDestinationMarker implements IDestinationMarker {
     // インプット要素
     this.inputElem = document.createElement("input");
     this.inputElem.className = styles.popupInput;
-    this.inputElem.defaultValue = dm.destination.title;
+    this.inputElem.defaultValue = this.destination.title;
     this.inputElem.maxLength = 30;
     this.inputElem.addEventListener(
       "keydown",
@@ -115,7 +114,7 @@ export class MaplibreDestinationMarker implements IDestinationMarker {
           this.optimisticDelete();
           await onDelete();
           this.destroy();
-        } catch (error) {
+        } catch {
           this.rollbackDelete();
         }
       },

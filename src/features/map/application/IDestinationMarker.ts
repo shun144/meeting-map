@@ -1,23 +1,19 @@
-import {
-  DestinationMarker,
-  type DestinationMarkerStatus,
-} from "@/features/map/domains/entities/DestinationMarker";
-import type { Destination } from "../domains/entities/Destination";
-import type { LngLat } from "../domains/valueObjects/LngLat";
+import { type PersistenceStatus } from "@/features/map/domains/entities/Destination";
+import type { Destination } from "@/features/map/domains/entities/Destination";
 
 export interface IDestinationMarker {
   create: (
-    dm: DestinationMarker,
+    destination: Destination,
     onUpdateTitle?: () => void,
     onDelete?: () => Promise<void>,
   ) => IDestinationMarker;
 
   getDestination: () => Destination;
-  getStatus: () => DestinationMarkerStatus;
+  getStatus: () => PersistenceStatus;
   setSave: () => void;
   popup: () => void;
   addToMap: (map: unknown) => void;
   destroy: () => void;
-  updateDestination: (lngLat: LngLat, title: string) => void;
+  updateDestination: (title: string) => void;
   setError: () => void;
 }

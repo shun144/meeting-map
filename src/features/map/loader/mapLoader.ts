@@ -11,7 +11,7 @@ export const mapLoader = async (
   let exists: boolean;
   try {
     exists = await repo.isExist(mapId);
-  } catch (error) {
+  } catch {
     throw new Response("Internal Server Error", { status: 500 });
   }
 
