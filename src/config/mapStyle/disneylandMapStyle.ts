@@ -57,7 +57,7 @@ const textStyle = {
     ["get", "name:en"],
   ],
   "text-font": ["Noto Sans Regular"],
-  "text-size": ["interpolate", ["linear"], ["zoom"], 17, 12, 18, 14],
+  "text-size": ["interpolate", ["linear"], ["zoom"], 17, 12, 18, 11],
   "text-variable-anchor": ["top", "right", "left"],
   "text-radial-offset": 0.8,
   "text-max-width": 10,
@@ -69,7 +69,7 @@ const textStyle = {
 } satisfies Partial<SymbolLayerSpecification["layout"]>;
 
 const iconStyle = {
-  "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.4, 17, 0.5],
+  "icon-size": ["interpolate", ["linear"], ["zoom"], 16, 0.4],
   "icon-padding": 10,
 
   // アイコンは常に表示
@@ -245,12 +245,13 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
+      // ショップ
       {
         id: "shops",
         ...layerSource,
         type: "symbol",
         filter: ["has", "shop"],
-        minzoom: 16,
+        minzoom: 18.5,
         layout: {
           "icon-image": "shop-icon",
           ...iconStyle,
@@ -263,6 +264,7 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
+      // レストラン
       {
         id: "restaurants",
         ...layerSource,
@@ -281,12 +283,13 @@ export const disneylandMapStyle: MapSrcStyle = {
         },
       },
 
+      // カフェ
       {
         id: "cafe",
         ...layerSource,
         type: "symbol",
         filter: ["in", "amenity", "cafe"],
-        minzoom: 16,
+        minzoom: 17,
         layout: {
           "icon-image": "cafe-icon",
           ...iconStyle,
@@ -305,7 +308,7 @@ export const disneylandMapStyle: MapSrcStyle = {
         ...layerSource,
         type: "symbol",
         filter: ["in", "amenity", "fast_food"],
-        minzoom: 16,
+        minzoom: 18,
         layout: {
           "icon-image": "fastfood-icon",
           ...iconStyle,
