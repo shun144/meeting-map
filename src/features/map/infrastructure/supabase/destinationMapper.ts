@@ -24,5 +24,5 @@ export const toDTO = (destination: Destination, mapId: string) => {
 
 export const fromDTO = (row: Tables<"destination">): Destination => {
   const lngLat = new LngLat(row.lng, row.lat);
-  return new Destination(row.id, lngLat, row.title);
+  return new Destination(row.id, lngLat, row.title ?? "");
 };
