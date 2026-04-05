@@ -14,6 +14,6 @@ export interface IDestinationMarker {
   popup: () => void;
   addToMap: (map: unknown) => void;
   destroy: () => void;
-  updateDestination: (title: string) => void;
+  updateTitle: (title: string) => void;
   setError: () => void;
 }

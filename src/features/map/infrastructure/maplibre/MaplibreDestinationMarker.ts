@@ -26,7 +26,7 @@ export class MaplibreDestinationMarker implements IDestinationMarker {
     this.element.addTo(map as maplibregl.Map);
   }
 
-  updateDestination(title: string) {
+  updateTitle(title: string) {
     this.destination.update(title);
   }
 
@@ -137,13 +137,13 @@ export class MaplibreDestinationMarker implements IDestinationMarker {
     return this;
   }
 
-  optimisticDelete() {
+  private optimisticDelete() {
     this.element.togglePopup();
     this.element.setOpacity("0");
     this.element.getElement().style.pointerEvents = "none";
   }
 
-  rollbackDelete() {
+  private rollbackDelete() {
     this.element.setOpacity("1");
     this.element.getElement().style.pointerEvents = "auto";
   }

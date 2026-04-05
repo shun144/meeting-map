@@ -13,7 +13,7 @@ export class DestinationService {
   ) {}
 
   private saveDestinationMarker(marker: IDestinationMarker, title: string) {
-    marker.updateDestination(title);
+    marker.updateTitle(title);
 
     switch (marker.getStatus()) {
       case "NEW":
