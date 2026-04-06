@@ -10,7 +10,7 @@ const Home = () => {
   const { isLoaded, mapList, isClearing, setIsClearing } = useHome();
 
   return (
-    <div className="min-h-full bg-linear-to-br from-blue-50 to-indigo-100 py-6 sm:py-8 px-3 sm:px-4 lg:px-8">
+    <div className="min-h-full bg-linear-to-br from-blue-50 to-indigo-100 py-6 sm:py-8 px-3 sm:px-4 lg:px-8 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(2rem+env(safe-area-inset-bottom))]">
       <div className="max-w-4xl mx-auto">
         <HomeHeader />
 
