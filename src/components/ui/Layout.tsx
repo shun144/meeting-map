@@ -1,11 +1,18 @@
 import Header from "@/components/ui/Header";
-import { memo } from "react";
-import { Outlet } from "react-router";
+import { memo, useEffect, useRef } from "react";
+import { Outlet, useLocation } from "react-router";
 import { ToastContainer } from "react-toastify";
 
 const Layout = () => {
+  const { pathname } = useLocation();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo(0, 0);
+  }, [pathname]);
+
   return (
-    <div className="h-screen overflow-y-scroll">
+    <div ref={scrollRef} className="h-dvh overflow-y-scroll">
       <div className="flex flex-col h-full">
         <Header />
         <div className="flex-1">

@@ -17,7 +17,7 @@ const BaseMap = ({ mapId }: Props) => {
   const { isMapReady } = useMapEvent(mapContainerRef, mapId);
 
   return (
-    <div className="relative h-full w-full pb-8 sm:pb-0">
+    <div className="relative h-full w-full">
       <div ref={mapContainerRef} className="h-full w-full" />
       <div
         className={`absolute inset-0 flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 transition-opacity duration-300 ${

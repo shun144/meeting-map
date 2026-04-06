@@ -1,3 +1,4 @@
+import { osmAttribution } from "./constants";
 import { type MapSrcStyle } from "./types";
 
 const PMTILES_SRC =
@@ -15,6 +16,7 @@ export const mabashiMapStyle: MapSrcStyle = {
       mabashi: {
         type: "vector",
         url: "pmtiles://" + PMTILES_SRC,
+        attribution: osmAttribution,
       },
     },
     layers: [
